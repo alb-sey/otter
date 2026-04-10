@@ -1,4 +1,3 @@
-
 [Mesh]
     type=GeneratedMesh 
     dim=2
@@ -16,13 +15,13 @@
 
 [Variables]
     [pressure]
-        #Now if I comment, does it break everything ?
+
     []
 []
 
 [Kernels]
     [diffusion]   
-        type = ADDiffusion 
+        type = DarcyPressure 
         variable = pressure
     []
 []
