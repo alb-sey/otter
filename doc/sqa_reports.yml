@@ -1,0 +1,6 @@
+Applications:
+    test_app:
+        app_types:
+            - TestAppApp
+        content_directory: ${ROOT_DIR}/doc/content
+        log_default: WARNING
