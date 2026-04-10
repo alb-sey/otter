@@ -1,12 +1,13 @@
+
 [Mesh]
-    type=GeneratedMesh # Can generate simple lines, rectangles and rectangular prisms
-    dim=2 # Mesh dimension
+    type=GeneratedMesh 
+    dim=2
     nx=100
     ny=10
-    xmax=0.304 #Length of test chamber
-    ymax=0.0257 # test chamber radius (because we are in rz axisymetric ??)
+    xmax=0.304 
+    ymax=0.0257 
     rz_coord_axis = X 
-    coord_type = RZ #r-z axisymetric
+    coord_type = RZ
 []
 
 [Problem]
@@ -15,22 +16,22 @@
 
 [Variables]
     [pressure]
-        # (Are there things you can add there ?)
+        #Now if I comment, does it break everything ?
     []
 []
 
 [Kernels]
-    [diffusion].   # (I can call this whatever I want, right ?)
-        type = ADDiffusion #Laplacian operator. (He knows exactly what this means ?)
+    [diffusion]   
+        type = ADDiffusion 
         variable = pressure
     []
 []
 
 [BCs]
     [inlet]
-        type=ADDirichletBC #BC u=value, basic
+        type=ADDirichletBC 
         variable = pressure
-        boundary = left # (How does it know what is right and left ?)
+        boundary = left 
         value =4000
     []
     [outlet]
@@ -38,16 +39,19 @@
         variable = pressure
         boundary = right
         value =0
+    []
+[]
 
 [Executioner]
-    type=Steady #Steady state problem
-    solve_type = NEWTON #newton solve
+    type=Steady 
+    solve_type = NEWTON 
 
-    petsc_options_iname = '-pc_type -pc_hypre_type' #(I really do not understand this)
+    petsc_options_iname = '-pc_type -pc_hypre_type' 
     petsc_options_value = ' hypre    boomeramg'
 []
 
 [Outputs]
-    exodus=true #(this neither)
+    exodus=true 
 []
+
 
