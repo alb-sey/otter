@@ -1,5 +1,5 @@
-mu = 2e-3 # 1e-2
-rho = 100
+mu = 0 # 2e-3 # 1e-2
+rho = 1000
 advected_interp_method = 'upwind'
 u_in = 1
 forcheimer = 0
@@ -7,7 +7,7 @@ bf = '0 0 0'
 
 [Mesh]
 
-  final_generator=delete
+  # final_generator=delete
   [mesh]
     type = CartesianMeshGenerator
     dim = 2
@@ -38,16 +38,18 @@ bf = '0 0 0'
     paired_block = '4'
     new_boundary = 'baffle3'
   []
-  [split_top_bottom]
-    type = BreakBoundaryOnSubdomainGenerator
-    input = baffle3
-    boundaries = 'top bottom'
-  []
-  [delete]
-    type = BoundaryDeletionGenerator
-    boundary_names = 'top bottom'
-    input = split_top_bottom
-  []
+  # [split_top_bottom]
+  #   type = BreakBoundaryOnSubdomainGenerator
+  #   input = baffle3
+  #   boundaries = 'top bottom'
+  # []
+
+
+  # [delete]
+  #   type = BoundaryDeletionGenerator
+  #   boundary_names = 'top bottom'
+  #   input = split_top_bottom
+  # []
 []
 
 [Problem]
@@ -74,9 +76,13 @@ bf = '0 0 0'
     use_flux_velocity_reconstruction = true
     use_reconstructed_pressure_gradient = true
     flux_velocity_reconstruction_relaxation = 1.0
-    flux_velocity_reconstruction_zero_flux_sidesets = 'top_to_1 top_to_2 top_to_3 top_to_4 bottom_to_1 bottom_to_2 bottom_to_3 bottom_to_4'
+    # flux_velocity_reconstruction_zero_flux_sidesets = 'top_to_1 top_to_2 top_to_3 top_to_4 bottom_to_1 bottom_to_2 bottom_to_3 bottom_to_4'
+    flux_velocity_reconstruction_zero_flux_sidesets = 'top bottom'
+
+    
     use_corrected_pressure_gradient = false
     # body_force_kernel_names = "u_friction; v_friction"
+    reconstructed_pressure_gradient_feedback_relaxation = 0.2
   []
 []
 
@@ -221,7 +227,9 @@ bf = '0 0 0'
 
   [symmetry-u]
     type = LinearFVVelocitySymmetryBC
-    boundary = 'top_to_1 top_to_2 top_to_3 top_to_4 bottom_to_1 bottom_to_2 bottom_to_3 bottom_to_4'
+    # boundary = 'top_to_1 top_to_2 top_to_3 top_to_4 bottom_to_1 bottom_to_2 bottom_to_3 bottom_to_4'
+    boundary = 'top bottom'
+
     variable = superficial_u
     u = superficial_u
     v = superficial_v
@@ -229,7 +237,8 @@ bf = '0 0 0'
   []
   [symmetry-v]
     type = LinearFVVelocitySymmetryBC
-    boundary = 'top_to_1 top_to_2 top_to_3 top_to_4 bottom_to_1 bottom_to_2 bottom_to_3 bottom_to_4'
+    # boundary = 'top_to_1 top_to_2 top_to_3 top_to_4 bottom_to_1 bottom_to_2 bottom_to_3 bottom_to_4'
+    boundary = 'top bottom'
     variable = superficial_v
     u = superficial_u
     v = superficial_v
@@ -253,7 +262,8 @@ bf = '0 0 0'
 
   [pressure-symmetry]
     type = LinearFVPressureSymmetryBC
-    boundary = 'top_to_1 top_to_2 top_to_3 top_to_4 bottom_to_1 bottom_to_2 bottom_to_3 bottom_to_4'
+    # boundary = 'top_to_1 top_to_2 top_to_3 top_to_4 bottom_to_1 bottom_to_2 bottom_to_3 bottom_to_4'
+    boundary = 'top bottom'
     variable = pressure
     HbyA_flux = 'HbyA' # Functor created in the RhieChowMassFlux UO
   []
@@ -318,20 +328,20 @@ bf = '0 0 0'
     expression = 'u_block_1 - u_block_2'
     pp_names = 'u_block_1 u_block_2'
   []
-  [v_top_int]
-    type = SideIntegralVariablePostprocessor
-    variable = superficial_v
-    boundary = 'top_to_1 top_to_2 top_to_3 top_to_4'
-  []
-  [top_area]
-    type = AreaPostprocessor
-    boundary = 'top_to_1 top_to_2 top_to_3 top_to_4'
-  []
-  [v_top_avg]
-    type = ParsedPostprocessor
-    pp_names = 'v_top_int top_area'
-    expression = 'v_top_int/top_area'
-  []
+  # [v_top_int]
+  #   type = SideIntegralVariablePostprocessor
+  #   variable = superficial_v
+  #   boundary = 'top_to_1 top_to_2 top_to_3 top_to_4'
+  # []
+  # [top_area]
+  #   type = AreaPostprocessor
+  #   boundary = 'top_to_1 top_to_2 top_to_3 top_to_4'
+  # []
+  # [v_top_avg]
+  #   type = ParsedPostprocessor
+  #   pp_names = 'v_top_int top_area'
+  #   expression = 'v_top_int/top_area'
+  # []
 []
 
 [VectorPostprocessors]
@@ -379,7 +389,7 @@ bf = '0 0 0'
   pressure_system = pressure_system
   momentum_equation_relaxation = 0.4
   pressure_variable_relaxation = 0.1
-  num_iterations = 1000
+  num_iterations = 250
   pressure_absolute_tolerance = 1e-8
   momentum_absolute_tolerance = 1e-8
   momentum_petsc_options_iname = '-pc_type -pc_hypre_type'

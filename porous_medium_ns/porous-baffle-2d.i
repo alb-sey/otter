@@ -1,5 +1,5 @@
 mu = 2e-3 # 1e-2
-rho = 1000
+rho = 1
 advected_interp_method = 'upwind'
 u_in = 2
 forcheimer = 10
