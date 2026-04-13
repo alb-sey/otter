@@ -70,7 +70,7 @@ rho = 1
   [p3]
     type=ConstantIC
     variable=porosity
-    value=0.3
+    value=0.333333333
     block='3'
   []
 []
