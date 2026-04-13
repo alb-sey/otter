@@ -2,7 +2,6 @@ mu = 0 # 2e-3 # 1e-2
 rho = 1000
 advected_interp_method = 'upwind'
 u_in = 1
-forcheimer = 10e-2
 bf = '0 0 0'
 
 [Mesh]
@@ -13,7 +12,7 @@ bf = '0 0 0'
     dim = 2
     dx = '1 1 1 1'
     dy = '1'
-    ix = '25 25 25 25'
+    ix = '25 100 100 25'
     iy = '25'
     subdomain_id = '1 2 3 4'
   []
@@ -270,11 +269,30 @@ bf = '0 0 0'
 []
 
 [FunctorMaterials]
-  [forch]
+  [forch_zero]
     type = GenericVectorFunctorMaterial
-    prop_names = forch
-    prop_values = '${forcheimer} ${forcheimer} ${forcheimer}'
+    prop_names = 'forch_null'
+    prop_values = '0 0 0'
   []
+
+  [forch_block_2]
+    type = GenericVectorFunctorMaterial
+    prop_names = 'forch_2'
+    prop_values = '10e-1 10e-1 10e-1'
+  []
+
+  [forch_block_3]
+    type = GenericVectorFunctorMaterial
+    prop_names = 'forch_3'
+    prop_values = '10e-2 10e-2 10e-2'
+  []
+
+  [forch]
+    type = PiecewiseByBlockVectorFunctorMaterial
+    prop_name = 'forch'
+    subdomain_to_prop_value = '1 forch_null 2 forch_2 3 forch_3 4 forch_null'
+  []
+
   [porosity]
     type = PiecewiseByBlockFunctorMaterial
     prop_name = porosity

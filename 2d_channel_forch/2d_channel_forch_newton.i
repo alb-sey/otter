@@ -6,7 +6,7 @@ rho = 1000
     dim = 2
     dx = '1 1 1 1'
     dy = '1'
-    ix = '25 25 25 25'
+    ix = '25 100 100 25'
     iy = '25'
     subdomain_id = '1 2 3 4'
   []
@@ -70,12 +70,37 @@ rho = 1000
   [p3]
     type=ConstantIC
     variable=porosity
-    value=0.333333333
+    value=0.33333
     block='3'
   []
 []
 
+[FunctorMaterials]
+  [forch_zero]
+    type = GenericVectorFunctorMaterial
+    prop_names = 'forch_null'
+    prop_values = '0 0 0'
+  []
 
+  [forch_block_2]
+    type = GenericVectorFunctorMaterial
+    prop_names = 'forch_2'
+    prop_values = '5 5 5'
+  []
+
+  [forch_block_3]
+    type = GenericVectorFunctorMaterial
+    prop_names = 'forch_3'
+    prop_values = '1 1 1'
+  []
+
+  [forch]
+    type = PiecewiseByBlockVectorFunctorMaterial
+    prop_name = 'forch'
+    subdomain_to_prop_value = '1 forch_null 2 forch_2 3 forch_3 4 forch_null'
+  []
+
+[]
 
 [FVKernels]
   [mass]
@@ -113,6 +138,31 @@ rho = 1000
     momentum_component = 'y'
     pressure = pressure
     porosity = porosity
+  []
+
+  [u_friction]
+    type = PINSFVMomentumFriction
+    rhie_chow_user_object = 'rc'
+    variable = superficial_u
+    Forchheimer_name = forch
+    porosity = porosity
+    rho = ${rho}
+    u = superficial_u
+    v = superficial_v
+    momentum_component = 'x'
+    block = '2 3'
+  []
+  [v_friction]
+    type = PINSFVMomentumFriction
+    rhie_chow_user_object = 'rc'
+    variable = superficial_v
+    Forchheimer_name = forch
+    porosity = porosity
+    rho = ${rho}
+    u = superficial_u
+    v = superficial_v
+    momentum_component = 'y'
+    block = '2 3'
   []
 
 []
