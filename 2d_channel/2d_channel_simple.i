@@ -11,10 +11,10 @@ bf = '0 0 0'
   [mesh]
     type = CartesianMeshGenerator
     dim = 2
-    dx = '0.5 0.5 0.5 0.5'
-    dy = '0.5'
-    ix = '21 21 21 21'
-    iy = '21'
+    dx = '1 1 1 1'
+    dy = '1'
+    ix = '25 25 25 25'
+    iy = '25'
     subdomain_id = '1 2 3 4'
   []
   [baffle]
@@ -344,20 +344,21 @@ bf = '0 0 0'
   # []
 []
 
+
 [VectorPostprocessors]
   [u_line]
     type = LineValueSampler
     variable = superficial_u
-    start_point = '0 0.25 0'
-    end_point = '1.5 0.25 0'
+    start_point = '0 0.5 0'
+    end_point = '4 0.5 0'
     num_points = 401
     sort_by = id
   []
   [p_line]
     type = LineValueSampler
     variable = pressure
-    start_point = '0 0.25 0'
-    end_point = '1.5 0.25 0'
+    start_point = '0 0.5 0'
+    end_point = '4 0.5 0'
     num_points = 401
     sort_by = id
   []
