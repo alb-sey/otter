@@ -1,4 +1,3 @@
-mu = 1e-5
 rho = 1.1
 
 [Mesh]
@@ -7,17 +6,16 @@ rho = 1.1
     dim=2
     dx='1 1 1 1'
     dy='1'
-    ix='10 10 10 10'
-    iy='10'
+    ix='100 100 100 100'
+    iy='20'
     subdomain_id = '1 2 3 4'
   []
 []
 
 
 [GlobalParams]
-  advected_interp_method = 'upwind'
-  velocity_interp_method = 'rc'
   rhie_chow_user_object = 'rc'
+  # porosity=porosity
 []
 
 [UserObjects]
@@ -40,7 +38,11 @@ rho = 1.1
     initial_condition = 1e-6
   []
   [pressure]
-    type = INSFVPressureVariable
+    type = BernoulliPressureVariable
+    u=superficial_vel_x
+    v=superficial_vel_y
+    porosity=porosity
+    rho=${rho}
   []
 []
 
@@ -68,7 +70,7 @@ rho = 1.1
   [p3]
     type=ConstantIC
     variable=porosity
-    value=0.3
+    value=0.333333333
     block='3'
   []
 []
@@ -89,13 +91,6 @@ rho = 1.1
     porosity = porosity
     momentum_component = 'x'
   []
-  [u_viscosity]
-    type = PINSFVMomentumDiffusion
-    variable = superficial_vel_x
-    mu = ${mu}
-    porosity = porosity
-    momentum_component = 'x'
-  []
   [u_pressure]
     type = PINSFVMomentumPressure
     variable = superficial_vel_x
@@ -111,13 +106,7 @@ rho = 1.1
     porosity = porosity
     momentum_component = 'y'
   []
-  [v_viscosity]
-    type = PINSFVMomentumDiffusion
-    variable = superficial_vel_y
-    mu = ${mu}
-    porosity = porosity
-    momentum_component = 'y'
-  []
+
   [v_pressure]
     type = PINSFVMomentumPressure
     variable = superficial_vel_y
@@ -130,7 +119,7 @@ rho = 1.1
 
 [FVBCs]
   # Select desired boundary conditions
-  active = 'inlet-u inlet-v outlet-p free-slip-u free-slip-v'
+  active = 'inlet-u inlet-v outlet-p no-slip-u no-slip-v'
 
   # Possible inlet boundary conditions
   [inlet-u]
@@ -183,7 +172,6 @@ rho = 1.1
     variable = superficial_vel_x
     u = superficial_vel_x
     v = superficial_vel_y
-    mu = ${mu}
     momentum_component = 'x'
   []
   [symmetry-v]
@@ -192,7 +180,6 @@ rho = 1.1
     variable = superficial_vel_y
     u = superficial_vel_x
     v = superficial_vel_y
-    mu = ${mu}
     momentum_component = 'y'
   []
   [symmetry-p]
