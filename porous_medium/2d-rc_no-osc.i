@@ -1,4 +1,4 @@
-rho = 1
+rho = 1.1
 
 [Mesh]
   [gen]
