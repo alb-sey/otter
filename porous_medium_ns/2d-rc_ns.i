@@ -1,8 +1,8 @@
 mu = 2e-3 # 1e-2
-rho = 1000
+rho = 100
 advected_interp_method = 'upwind'
-u_in = 2
-forcheimer = 10
+u_in = 1
+forcheimer = 0
 bf = '0 0 0'
 
 [Mesh]
@@ -33,7 +33,7 @@ bf = '0 0 0'
   []
   [baffle3]
     type = SideSetsBetweenSubdomainsGenerator
-    input = baffle
+    input = baffle2
     primary_block = '3'
     paired_block = '4'
     new_boundary = 'baffle3'
@@ -180,6 +180,7 @@ bf = '0 0 0'
 []
 
 [LinearFVBCs]
+
   [left_u]
     type = LinearFVAdvectionDiffusionFunctorDirichletBC
     boundary = left
