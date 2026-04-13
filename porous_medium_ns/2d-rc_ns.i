@@ -3,17 +3,19 @@ rho = 1000
 advected_interp_method = 'upwind'
 u_in = 2
 forcheimer = 10
-bf = '0 0'
+bf = '0 0 0'
 
 [Mesh]
+
+  final_generator=delete
   [mesh]
     type = CartesianMeshGenerator
     dim = 2
-    dx = '0.5 0.5 0.5'
+    dx = '0.5 0.5 0.5 0.5'
     dy = '0.5'
-    ix = '21 21 21'
+    ix = '21 21 21 21'
     iy = '21'
-    subdomain_id = '1 2 3'
+    subdomain_id = '1 2 3 4'
   []
   [baffle]
     type = SideSetsBetweenSubdomainsGenerator
@@ -29,9 +31,16 @@ bf = '0 0'
     paired_block = '3'
     new_boundary = 'baffle2'
   []
+  [baffle3]
+    type = SideSetsBetweenSubdomainsGenerator
+    input = baffle
+    primary_block = '3'
+    paired_block = '4'
+    new_boundary = 'baffle3'
+  []
   [split_top_bottom]
     type = BreakBoundaryOnSubdomainGenerator
-    input = baffle2
+    input = baffle3
     boundaries = 'top bottom'
   []
   [delete]
@@ -55,17 +64,17 @@ bf = '0 0'
     rho = ${rho}
     porosity = porosity
     p_diffusion_kernel = p_diffusion
-    pressure_baffle_sidesets = 'baffle baffle2'
-    # pressure_gradient_limiter = 'baffle baffle2'
+    pressure_baffle_sidesets = 'baffle baffle2 baffle3'
+    # pressure_gradient_limiter = 'baffle baffle2 baffle3'
     baffle_form_loss = ${bf}
-    velocity_form_loss = 'lower_epsilon higher_epsilon'
+    velocity_form_loss = 'lower_epsilon lower_epsilon higher_epsilon'
     # pressure_gradient_limiter_blend = 0.5
     pressure_baffle_relaxation = 0.1
     debug_baffle = false
     use_flux_velocity_reconstruction = true
     use_reconstructed_pressure_gradient = true
     flux_velocity_reconstruction_relaxation = 1.0
-    flux_velocity_reconstruction_zero_flux_sidesets = 'top_to_1 top_to_2 top_to_3 bottom_to_1 bottom_to_2 bottom_to_3'
+    flux_velocity_reconstruction_zero_flux_sidesets = 'top_to_1 top_to_2 top_to_3 top_to_4 bottom_to_1 bottom_to_2 bottom_to_3 bottom_to_4'
     use_corrected_pressure_gradient = false
     # body_force_kernel_names = "u_friction; v_friction"
   []
@@ -132,28 +141,28 @@ bf = '0 0'
     porosity = porosity
     use_corrected_gradient = true
   []
-  [u_friction]
-    type = LinearFVMomentumPorousFriction
-    variable = superficial_u
-    Forchheimer_name = forch
-    porosity = porosity
-    rho = ${rho}
-    u = superficial_u
-    v = superficial_v
-    momentum_component = 'x'
-    block = 2
-  []
-  [v_friction]
-    type = LinearFVMomentumPorousFriction
-    variable = superficial_v
-    Forchheimer_name = forch
-    porosity = porosity
-    rho = ${rho}
-    u = superficial_u
-    v = superficial_v
-    momentum_component = 'y'
-    block = 2
-  []
+  # [u_friction]
+  #   type = LinearFVMomentumPorousFriction
+  #   variable = superficial_u
+  #   Forchheimer_name = forch
+  #   porosity = porosity
+  #   rho = ${rho}
+  #   u = superficial_u
+  #   v = superficial_v
+  #   momentum_component = 'x'
+  #   block = 2
+  # []
+  # [v_friction]
+  #   type = LinearFVMomentumPorousFriction
+  #   variable = superficial_v
+  #   Forchheimer_name = forch
+  #   porosity = porosity
+  #   rho = ${rho}
+  #   u = superficial_u
+  #   v = superficial_v
+  #   momentum_component = 'y'
+  #   block = 2
+  # []
   [p_diffusion]
     type = LinearFVAnisotropicDiffusionJump
     variable = pressure
@@ -211,7 +220,7 @@ bf = '0 0'
 
   [symmetry-u]
     type = LinearFVVelocitySymmetryBC
-    boundary = 'top_to_1 top_to_2 top_to_3 bottom_to_1 bottom_to_2 bottom_to_3'
+    boundary = 'top_to_1 top_to_2 top_to_3 top_to_4 bottom_to_1 bottom_to_2 bottom_to_3 bottom_to_4'
     variable = superficial_u
     u = superficial_u
     v = superficial_v
@@ -219,7 +228,7 @@ bf = '0 0'
   []
   [symmetry-v]
     type = LinearFVVelocitySymmetryBC
-    boundary = 'top_to_1 top_to_2 top_to_3 bottom_to_1 bottom_to_2 bottom_to_3'
+    boundary = 'top_to_1 top_to_2 top_to_3 top_to_4 bottom_to_1 bottom_to_2 bottom_to_3 bottom_to_4'
     variable = superficial_v
     u = superficial_u
     v = superficial_v
@@ -243,7 +252,7 @@ bf = '0 0'
 
   [pressure-symmetry]
     type = LinearFVPressureSymmetryBC
-    boundary = 'top_to_1 top_to_2 top_to_3 bottom_to_1 bottom_to_2 bottom_to_3'
+    boundary = 'top_to_1 top_to_2 top_to_3 top_to_4 bottom_to_1 bottom_to_2 bottom_to_3 bottom_to_4'
     variable = pressure
     HbyA_flux = 'HbyA' # Functor created in the RhieChowMassFlux UO
   []
@@ -258,7 +267,7 @@ bf = '0 0'
   [porosity]
     type = PiecewiseByBlockFunctorMaterial
     prop_name = porosity
-    subdomain_to_prop_value = '1 1.0 2 0.5 3 1.0'
+    subdomain_to_prop_value = '1 1.0 2 0.5 3 0.33333 4 1.0'
   []
 []
 
@@ -311,11 +320,11 @@ bf = '0 0'
   [v_top_int]
     type = SideIntegralVariablePostprocessor
     variable = superficial_v
-    boundary = 'top_to_1 top_to_2 top_to_3'
+    boundary = 'top_to_1 top_to_2 top_to_3 top_to_4'
   []
   [top_area]
     type = AreaPostprocessor
-    boundary = 'top_to_1 top_to_2 top_to_3'
+    boundary = 'top_to_1 top_to_2 top_to_3 top_to_4'
   []
   [v_top_avg]
     type = ParsedPostprocessor
