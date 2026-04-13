@@ -133,8 +133,10 @@ def _build_figure(u_series, p_series, x_label, title, u_styles, p_styles, labels
         linestyle="--",
         linewidth=0.8,
         alpha=0.9,
-        label="expected",
+        label="Analytic",
     )
+
+    ax2.set_ylim(-5100, 200)
 
     
 
@@ -153,6 +155,7 @@ def _build_figure(u_series, p_series, x_label, title, u_styles, p_styles, labels
     if labels:
         legend_kwargs = dict(
             loc="best",
+            # loc = "lower left"
             frameon=True,
             fontsize=8,
             ncol=1,
@@ -191,9 +194,12 @@ def _sample_key(path: Path):
 
 
 def _pretty_label(case_name: str):
-    if case_name.startswith("2d_channel_"):
-        return case_name[len("2d_channel_") :]
-    return case_name
+    mapping = {
+        "2d_channel_newton": "Existing solver (Newton's method)",
+        "2d_channel_simple": "New solver (SIMPLE)",
+    }
+    return mapping.get(case_name, case_name)
+
 
 
 def main(argv):
