@@ -3,10 +3,10 @@
 Plot LineValueSampler CSV outputs for velocity and pressure with LaTeX-style fonts.
 
 Expected files in the current directory, for example:
-    2d_channel_newton_out_u_line_0001.csv
-    2d_channel_newton_out_p_line_0001.csv
-    2d_channel_simple_out_u_line_0001.csv
-    2d_channel_simple_out_p_line_0001.csv
+    2d_channel_forch_newton_out_u_line_0001.csv
+    2d_channel_forch_newton_out_p_line_0001.csv
+    2d_channel_forch_simple_out_u_line_0001.csv
+    2d_channel_forch_simple_out_p_line_0001.csv
 """
 
 from __future__ import annotations
@@ -22,6 +22,7 @@ def _read_csv(path: Path):
         reader = csv.reader(f)
         header = None
         rows = []
+
         for row in reader:
             if not row:
                 continue
@@ -48,13 +49,67 @@ def _read_csv(path: Path):
 def _pick_x(cols):
     if "x" not in cols:
         raise RuntimeError("Expected an 'x' column in the CSV")
-    return "x", cols["x"]
+    return cols["x"]
 
 
 def _pick_y(cols, y_col):
     if y_col not in cols:
         raise RuntimeError(f"Column '{y_col}' not found in CSV")
-    return y_col, cols[y_col]
+    return cols[y_col]
+
+
+def _sample_key(path: Path):
+    """
+    Extract a matching key from filenames like:
+        2d_channel_forch_newton_out_u_line_0001.csv
+        2d_channel_forch_simple_out_p_line_0001.csv
+
+    Returns:
+        (case_name, line_index)
+    Example:
+        ("2d_channel_forch_newton", 1)
+    """
+    match = re.match(r"(.+)_out_[up]_line_(\d+)\.csv$", path.name)
+    if not match:
+        raise RuntimeError(f"Could not parse sample key from {path}")
+    case_name = match.group(1)
+    line_index = int(match.group(2))
+    return case_name, line_index
+
+
+def _pretty_label(case_name: str):
+    mapping = {
+        "2d_channel_forch_newton": "Existing solver (Newton's method)",
+        "2d_channel_forch_simple": "New solver (SIMPLE)",
+    }
+    return mapping.get(case_name, case_name)
+
+
+def _solver_colors(label: str):
+    """
+    Keep SIMPLE colors unchanged.
+    Use custom colors for Newton:
+      - velocity Newton: #70C9FF
+      - pressure Newton: #FF674A
+    """
+    if "Newton" in label:
+        return "#00B9FF", "#FF674A"
+    return "#1f77b4", "#d62728"
+
+
+def _build_expected_pressure_profile():
+    """
+    Expected pressure profile:
+      p(x) = 14500              for x < 1
+      p(1+) = 13000
+      affine to p(2-) = 3000
+      p(2+) = 500
+      affine to p(3-) = -4000
+      p(x) = 0                 for x > 3
+    """
+    x = [0.0, 1.0, 1.0, 2.0, 2.0, 3.0, 3.0, 4.0]
+    p = [14500.0, 14500.0, 13000.0, 3000.0, 500.0, -4000.0, 0.0, 0.0]
+    return x, p
 
 
 def _build_figure(u_series, p_series, x_label, title, u_styles, p_styles, labels):
@@ -77,22 +132,23 @@ def _build_figure(u_series, p_series, x_label, title, u_styles, p_styles, labels
 
     fig, (ax1, ax2) = plt.subplots(1, 2, sharex=False, figsize=(10, 4))
 
-    for i, ((x_u, u), style, label) in enumerate(zip(u_series, u_styles, labels)):
-        markers = ["o", "s", "^", "D", "v", ">", "<"]
+    markers = ["o", "s", "^", "D", "v", ">", "<"]
 
+    for i, ((x_u, u), style, label) in enumerate(zip(u_series, u_styles, labels)):
+        vel_color, _ = _solver_colors(label)
         ax1.plot(
             x_u,
             u,
-            color="#1f77b4",
-            linestyle=style,
-            linewidth=1.5,
-            alpha=1,
-            marker=markers[len(ax1.lines) % len(markers)],
+            color=vel_color,
+            # linestyle=style,
+            linewidth=1,
+            alpha=1.0,
+            marker=markers[i % len(markers)],
             markersize=2,
-            markevery=(10*i, max(1, len(x_u) // 10)),
+            markevery=(10 * i, max(1, len(x_u) // 10)),
             label=label,
         )
-    
+
     ax1.plot(
         [0.0, 4.0],
         [1.0, 1.0],
@@ -105,30 +161,27 @@ def _build_figure(u_series, p_series, x_label, title, u_styles, p_styles, labels
     ax1.set_ylabel(r"Superficial velocity [m/s]")
     ax1.set_xlabel(x_label)
     ax1.set_title(title)
-    ax1.set_ylim(1-10e-6, 1+10e-6)
+    ax1.set_ylim(1 - 10e-6, 1 + 10e-6)
 
     for i, ((x_p, p), style, label) in enumerate(zip(p_series, p_styles, labels)):
-        markers = ["o", "s", "^", "D", "v", ">", "<"]
-
-
+        _, pres_color = _solver_colors(label)
         ax2.plot(
             x_p,
             p,
-            color="#d62728",
-            linestyle=style,
-            linewidth=1.5,
-            alpha=1,
-            marker=markers[len(ax2.lines) % len(markers)],
+            color=pres_color,
+            # linestyle=style,
+            linewidth=1,
+            alpha=1.0,
+            marker=markers[i % len(markers)],
             markersize=2,
-            markevery=(10*i, max(1, len(x_p) // 10)),
+            markevery=(10 * i, max(1, len(x_p) // 10)),
             label=label,
         )
-    ax2.set_ylabel(r"Pressure [Pa]")
-    ax2.set_xlabel(x_label)
 
+    expected_x, expected_p = _build_expected_pressure_profile()
     ax2.plot(
-        [0.0, 1.0, 1.0, 2.0, 2.0, 3.0, 3.0, 4.0],
-        [0.0, 0.0, -1500.0, -1500.0, -4000.0, -4000.0, 0.0, 0.0],
+        expected_x,
+        expected_p,
         color="black",
         linestyle="--",
         linewidth=0.8,
@@ -136,9 +189,9 @@ def _build_figure(u_series, p_series, x_label, title, u_styles, p_styles, labels
         label="Analytic",
     )
 
-    ax2.set_ylim(-5100, 200)
-
-    
+    ax2.set_ylabel(r"Pressure [Pa]")
+    ax2.set_xlabel(x_label)
+    ax2.set_ylim(-5000, 15500)
 
     for ax in (ax1, ax2):
         for spine in ax.spines.values():
@@ -147,15 +200,15 @@ def _build_figure(u_series, p_series, x_label, title, u_styles, p_styles, labels
         ax.axvline(1.0, color="0.2", linestyle="--", linewidth=1.0, alpha=0.7)
         ax.axvline(2.0, color="0.2", linestyle="--", linewidth=1.0, alpha=0.7)
         ax.axvline(3.0, color="0.2", linestyle="--", linewidth=1.0, alpha=0.7)
-        ax.set_xlim(left=0.0, right=4)
+        ax.set_xlim(left=0.0, right=4.0)
         ax.xaxis.set_major_locator(MultipleLocator(0.5))
         ax.ticklabel_format(style="plain", axis="both", useOffset=False)
 
     fig.tight_layout()
+
     if labels:
         legend_kwargs = dict(
             loc="best",
-            # loc = "lower left"
             frameon=True,
             fontsize=8,
             ncol=1,
@@ -163,10 +216,11 @@ def _build_figure(u_series, p_series, x_label, title, u_styles, p_styles, labels
         )
         ax1.legend(**legend_kwargs)
         ax2.legend(**legend_kwargs)
+
     return fig
 
 
-def _save_with_latex(out_path, make_fig):
+def _save_figure(out_path: Path, make_fig):
     import matplotlib.pyplot as plt
 
     fig = make_fig()
@@ -174,45 +228,17 @@ def _save_with_latex(out_path, make_fig):
     plt.close(fig)
 
 
-def _sample_key(path: Path):
-    """
-    Extract a matching key from filenames like:
-        2d_channel_newton_out_u_line_0001.csv
-        2d_channel_simple_out_p_line_0001.csv
-
-    Returns:
-        (case_name, line_index)
-    Example:
-        ("2d_channel_newton", 1)
-    """
-    match = re.match(r"(.+)_out_[up]_line_(\d+)\.csv$", path.name)
-    if not match:
-        raise RuntimeError(f"Could not parse sample key from {path}")
-    case_name = match.group(1)
-    line_index = int(match.group(2))
-    return case_name, line_index
-
-
-def _pretty_label(case_name: str):
-    mapping = {
-        "2d_channel_newton": "Existing solver (Newton's method)",
-        "2d_channel_simple": "New solver (SIMPLE)",
-    }
-    return mapping.get(case_name, case_name)
-
-
-
 def main(argv):
     if argv:
         raise RuntimeError("This script takes no arguments.")
 
-    u_files = sorted(Path(".").glob("2d_channel_*_out_u_line_*.csv"))
-    p_files = sorted(Path(".").glob("2d_channel_*_out_p_line_*.csv"))
+    u_files = sorted(Path(".").glob("2d_channel_forch_*_out_u_line_*.csv"))
+    p_files = sorted(Path(".").glob("2d_channel_forch_*_out_p_line_*.csv"))
 
     if not u_files or not p_files:
         raise RuntimeError(
             "No line sample CSV files found for pattern "
-            "'2d_channel_*_out_[u|p]_line_*.csv'."
+            "'2d_channel_forch_*_out_[u|p]_line_*.csv'."
         )
 
     u_map = {_sample_key(path): path for path in u_files}
@@ -237,11 +263,11 @@ def main(argv):
         u_cols = _read_csv(u_map[key])
         p_cols = _read_csv(p_map[key])
 
-        _, x_u = _pick_x(u_cols)
-        _, x_p = _pick_x(p_cols)
+        x_u = _pick_x(u_cols)
+        x_p = _pick_x(p_cols)
 
-        _, u = _pick_y(u_cols, "superficial_u")
-        _, p = _pick_y(p_cols, "pressure")
+        u = _pick_y(u_cols, "superficial_u")
+        p = _pick_y(p_cols, "pressure")
 
         u_series.append((x_u, u))
         p_series.append((x_p, p))
@@ -276,7 +302,7 @@ def main(argv):
         )
 
     out_path = Path("line_samples.png")
-    _save_with_latex(out_path, make_fig)
+    _save_figure(out_path, make_fig)
     print(f"Wrote {out_path}")
 
 
