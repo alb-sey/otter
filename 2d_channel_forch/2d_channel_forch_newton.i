@@ -85,7 +85,7 @@ rho = 1000
   [forch_block_2]
     type = GenericVectorFunctorMaterial
     prop_names = 'forch_2'
-    prop_values = '5 5 5'
+    prop_values = '5 5 5' #multiply by 2/porosity to get the same value as SIMPLE
   []
 
   [forch_block_3]
@@ -99,7 +99,6 @@ rho = 1000
     prop_name = 'forch'
     subdomain_to_prop_value = '1 forch_null 2 forch_2 3 forch_3 4 forch_null'
   []
-
 []
 
 [FVKernels]
@@ -142,6 +141,7 @@ rho = 1000
 
   [u_friction]
     type = PINSFVMomentumFriction
+    standard_friction_formulation=true
     rhie_chow_user_object = 'rc'
     variable = superficial_u
     Forchheimer_name = forch
@@ -154,6 +154,7 @@ rho = 1000
   []
   [v_friction]
     type = PINSFVMomentumFriction
+    standard_friction_formulation=true
     rhie_chow_user_object = 'rc'
     variable = superficial_v
     Forchheimer_name = forch
