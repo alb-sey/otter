@@ -1,5 +1,5 @@
 rho = 1000
-mu = 1e-3
+mu = 1e-1
 
 [Mesh]
   [gen]
@@ -8,7 +8,7 @@ mu = 1e-3
     dx = '1 1 1 1'
     dy = '1'
     ix = '20 20 20 20'
-    iy = '50'
+    iy = '20'
     subdomain_id = '1 2 3 4'
   []
 []
@@ -116,6 +116,15 @@ mu = 1e-3
     porosity = porosity
     momentum_component = 'x'
   []
+
+  [u_viscosity]
+    type = PINSFVMomentumDiffusion
+    variable = superficial_u
+    mu = ${mu}
+    porosity = porosity
+    momentum_component = 'x'
+  []
+
   [u_pressure]
     type = PINSFVMomentumPressure
     variable = superficial_u
@@ -128,6 +137,13 @@ mu = 1e-3
     type = PINSFVMomentumAdvection
     variable = superficial_v
     rho = ${rho}
+    porosity = porosity
+    momentum_component = 'y'
+  []
+  [v_viscosity]
+    type = PINSFVMomentumDiffusion
+    variable = superficial_v
+    mu = ${mu}
     porosity = porosity
     momentum_component = 'y'
   []
@@ -148,6 +164,7 @@ mu = 1e-3
     Forchheimer_name = forch
     porosity = porosity
     rho = ${rho}
+    mu = ${mu}
     u = superficial_u
     v = superficial_v
     momentum_component = 'x'
@@ -161,6 +178,7 @@ mu = 1e-3
     Forchheimer_name = forch
     porosity = porosity
     rho = ${rho}
+    mu = ${mu}
     u = superficial_u
     v = superficial_v
     momentum_component = 'y'
