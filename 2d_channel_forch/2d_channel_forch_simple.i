@@ -12,7 +12,7 @@ bf = '0 0 0'
     dim = 2
     dx = '1 1 1 1'
     dy = '1'
-    ix = '320 320 320 320'
+    ix = '20 20 20 20'
     iy = '50'
     subdomain_id = '1 2 3 4'
   []
@@ -68,7 +68,7 @@ bf = '0 0 0'
     pressure_baffle_sidesets = 'baffle baffle2 baffle3'
     # pressure_gradient_limiter = 'baffle baffle2 baffle3'
     baffle_form_loss = ${bf}
-    velocity_form_loss = 'lower_epsilon lower_epsilon higher_epsilon'
+    velocity_form_loss = 'lower_epsilon lower_epsilon higher_epsilon' #the old solver does it himself, it decides wether to use the velocity before or after to compute form loss
     # pressure_gradient_limiter_blend = 0.5
     pressure_baffle_relaxation = 0.1
     debug_baffle = false

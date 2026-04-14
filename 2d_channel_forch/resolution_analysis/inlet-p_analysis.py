@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
 """
-Plot the error in inlet pressure versus resolution for SIMPLE and Newton results.
+Plot inlet pressure error versus resolution for SIMPLE and Newton results,
+and fit a power law
+
+    error(p) = C * ix**alpha
+
+in log-log space.
 
 Expected files in the current directory:
     simple_inlet-p.csv
@@ -8,17 +13,12 @@ Expected files in the current directory:
 
 Each CSV must contain exactly these columns:
     ix,inlet-p
-
-The plotted quantity is:
-    |p_analytic - p_inlet|
-
-with:
-    p_analytic = 14500 Pa
 """
 
 from __future__ import annotations
 
 import csv
+import math
 import sys
 from pathlib import Path
 
@@ -30,8 +30,8 @@ NEWTON_FILE = Path("newton_inlet-p.csv")
 
 EXPECTED_IX = [20, 40, 80, 160, 320]
 
-SIMPLE_COLOR = "#d62728"   # keep the same red
-NEWTON_COLOR = "#FF674A"   # same orange/red as before
+SIMPLE_COLOR = "#d62728"
+NEWTON_COLOR = "#FF674A"
 
 
 def _read_csv(path: Path):
@@ -89,6 +89,46 @@ def _compute_error(data):
     return ix, err
 
 
+def _fit_power_law(ix, err):
+    """
+    Fit err = C * ix**alpha using least squares in log-log space.
+
+    Returns:
+        alpha, C, fitted_values
+    """
+    if len(ix) != len(err):
+        raise RuntimeError("ix and err must have same length")
+
+    if any(x <= 0 for x in ix):
+        raise RuntimeError("All ix values must be > 0 for log-log fitting")
+
+    if any(e <= 0 for e in err):
+        raise RuntimeError(
+            "All error values must be > 0 for log-log fitting. "
+            "A zero error cannot be shown on a log scale."
+        )
+
+    logx = [math.log(x) for x in ix]
+    logy = [math.log(y) for y in err]
+
+    n = len(logx)
+    mean_x = sum(logx) / n
+    mean_y = sum(logy) / n
+
+    sxx = sum((x - mean_x) ** 2 for x in logx)
+    sxy = sum((x - mean_x) * (y - mean_y) for x, y in zip(logx, logy))
+
+    if sxx == 0.0:
+        raise RuntimeError("Cannot fit power law: all ix values are identical")
+
+    alpha = sxy / sxx
+    intercept = mean_y - alpha * mean_x
+    C = math.exp(intercept)
+
+    fitted = [C * (x ** alpha) for x in ix]
+    return alpha, C, fitted
+
+
 def _build_figure(simple_xy, newton_xy):
     import matplotlib as mpl
     import matplotlib.pyplot as plt
@@ -112,6 +152,9 @@ def _build_figure(simple_xy, newton_xy):
     ix_simple, err_simple = simple_xy
     ix_newton, err_newton = newton_xy
 
+    alpha_simple, C_simple, fit_simple = _fit_power_law(ix_simple, err_simple)
+    alpha_newton, C_newton, fit_newton = _fit_power_law(ix_newton, err_newton)
+
     ax.plot(
         ix_simple,
         err_simple,
@@ -120,7 +163,7 @@ def _build_figure(simple_xy, newton_xy):
         linewidth=1.5,
         marker="o",
         markersize=4,
-        label="New solver (SIMPLE)",
+        label=f"New solver (SIMPLE)",
     )
 
     ax.plot(
@@ -131,14 +174,55 @@ def _build_figure(simple_xy, newton_xy):
         linewidth=1.5,
         marker="s",
         markersize=4,
-        label="Existing solver (Newton's method)",
+        label=f"Existing solver (Newton's method)",
     )
+
+    ax.plot(
+        ix_simple,
+        fit_simple,
+        color='black',
+        linestyle="--",
+        linewidth=1.2,
+        label=rf"SIMPLE : $\alpha = {alpha_simple:.3f}$",
+    )
+
+    ax.plot(
+        ix_newton,
+        fit_newton,
+        color='black',
+        linestyle="--",
+        linewidth=1.2,
+        label=rf"Newton : $\alpha = {alpha_newton:.3f}$",
+    )
+
+    # # --- Annotation text (LaTeX style) ---
+    # text_simple = rf"SIMPLE: $e \sim {C_simple:.1e}\, i_x^{{{alpha_simple:.2f}}}$"
+    # text_newton = rf"Newton: $e \sim {C_newton:.1e}\, i_x^{{{alpha_newton:.2f}}}$"
+
+    # # Place in axes coordinates (0–1)
+    # ax.text(
+    #     0.05, 0.15,
+    #     text_simple,
+    #     transform=ax.transAxes,
+    #     fontsize=9,
+    #     color='black',
+    #     verticalalignment="bottom",
+    # )
+
+    # ax.text(
+    #     0.55, 0.55,
+    #     text_newton,
+    #     transform=ax.transAxes,
+    #     fontsize=9,
+    #     color='black',
+    #     verticalalignment="top",
+    # )
 
     ax.set_xlabel(r"Resolution $i_x$")
     ax.set_ylabel(r"$|p_{\mathrm{analytic}} - p_{\mathrm{inlet}}|$ [Pa]")
 
-    ax.set_yscale('log')
-    ax.set_xscale('log')
+    ax.set_xscale("log")
+    ax.set_yscale("log")
 
     ax.set_xticks(EXPECTED_IX)
     ax.get_xaxis().set_major_formatter(ScalarFormatter())
@@ -151,7 +235,7 @@ def _build_figure(simple_xy, newton_xy):
     ax.legend(
         loc="best",
         frameon=True,
-        fontsize=9,
+        fontsize=8,
         ncol=1,
         handlelength=2.5,
     )
