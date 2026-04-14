@@ -278,13 +278,13 @@ bf = '0 0 0'
   [forch_block_2]
     type = GenericVectorFunctorMaterial
     prop_names = 'forch_2'
-    prop_values = '10e-1 10e-1 10e-1'
+    prop_values = '1.25 1.25 1.25'
   []
 
   [forch_block_3]
     type = GenericVectorFunctorMaterial
     prop_names = 'forch_3'
-    prop_values = '10e-2 10e-2 10e-2'
+    prop_values = '0.166665 0.166665 1.166665'
   []
 
   [forch]
