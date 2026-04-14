@@ -1,8 +1,8 @@
-mu = 1e-1
+mu = 0
 rho = 1000
 advected_interp_method = 'upwind'
 u_in = 1
-bf = '0 0 0'
+bf = '3 0 1'
 
 [Mesh]
 
@@ -12,10 +12,11 @@ bf = '0 0 0'
     dim = 2
     dx = '1 1 1 1'
     dy = '1'
-    ix = '20 20 20 20'
+    ix = '100 100 100 100'
     iy = '20'
     subdomain_id = '1 2 3 4'
   []
+  
   [baffle]
     type = SideSetsBetweenSubdomainsGenerator
     input = mesh
@@ -68,7 +69,7 @@ bf = '0 0 0'
     pressure_baffle_sidesets = 'baffle baffle2 baffle3'
     # pressure_gradient_limiter = 'baffle baffle2 baffle3'
     baffle_form_loss = ${bf}
-    velocity_form_loss = 'lower_epsilon lower_epsilon higher_epsilon' #the old solver does it himself, it decides wether to use the velocity before or after to compute form loss
+    velocity_form_loss = 'lower_epsilon lower_epsilon lower_epsilon' #the old solver does it himself, it decides wether to use the velocity before or after to compute form loss
     # pressure_gradient_limiter_blend = 0.5
     pressure_baffle_relaxation = 0.2
     debug_baffle = false
@@ -415,7 +416,7 @@ bf = '0 0 0'
   pressure_system = pressure_system
   momentum_equation_relaxation = 0.3
   pressure_variable_relaxation = 0.1
-  num_iterations = 3000
+  num_iterations = 300
   pressure_absolute_tolerance = 1e-8
   momentum_absolute_tolerance = 1e-8
   momentum_petsc_options_iname = '-pc_type -pc_hypre_type'

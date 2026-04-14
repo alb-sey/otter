@@ -1,5 +1,6 @@
 rho = 1000
-mu = 1e-1
+mu = 0
+bf = '3 0 1'
 
 [Mesh]
   [gen]
@@ -7,12 +8,32 @@ mu = 1e-1
     dim = 2
     dx = '1 1 1 1'
     dy = '1'
-    ix = '20 20 20 20'
+    ix = '100 100 100 100'
     iy = '20'
     subdomain_id = '1 2 3 4'
   []
+  [baffle]
+    type = SideSetsBetweenSubdomainsGenerator
+    input = gen
+    primary_block = '1'
+    paired_block = '2'
+    new_boundary = 'baffle'
+  []
+  [baffle2]
+    type = SideSetsBetweenSubdomainsGenerator
+    input = baffle
+    primary_block = '2'
+    paired_block = '3'
+    new_boundary = 'baffle2'
+  []
+  [baffle3]
+    type = SideSetsBetweenSubdomainsGenerator
+    input = baffle2
+    primary_block = '3'
+    paired_block = '4'
+    new_boundary = 'baffle3'
+  []
 []
-
 
 [GlobalParams]
   rhie_chow_user_object = 'rc'
@@ -39,11 +60,13 @@ mu = 1e-1
     initial_condition = 1e-6
   []
   [pressure]
-    type = BernoulliPressureVariable
-    u=superficial_u
-    v=superficial_v
-    porosity=porosity
-    rho=${rho}
+  type = BernoulliPressureVariable
+    u = superficial_u
+    v = superficial_v
+    porosity = porosity
+    rho = ${rho}
+    pressure_drop_sidesets = 'baffle baffle2 baffle3'
+    pressure_drop_form_factors = ${bf}
   []
 []
 

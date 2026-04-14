@@ -3,10 +3,10 @@
 Plot LineValueSampler CSV outputs for velocity and pressure with LaTeX-style fonts.
 
 Expected files in the current directory, for example:
-    2d_channel_forch_newton_out_u_line_0001.csv
-    2d_channel_forch_newton_out_p_line_0001.csv
-    2d_channel_forch_simple_out_u_line_0001.csv
-    2d_channel_forch_simple_out_p_line_0001.csv
+    2d_channel_viscous_newton_out_u_line_0001.csv
+    2d_channel_viscous_newton_out_p_line_0001.csv
+    2d_channel_viscous_simple_out_u_line_0001.csv
+    2d_channel_viscous_simple_out_p_line_0001.csv
 """
 
 from __future__ import annotations
@@ -61,13 +61,13 @@ def _pick_y(cols, y_col):
 def _sample_key(path: Path):
     """
     Extract a matching key from filenames like:
-        2d_channel_forch_newton_out_u_line_0001.csv
-        2d_channel_forch_simple_out_p_line_0001.csv
+        2d_channel_viscous_newton_out_u_line_0001.csv
+        2d_channel_viscous_simple_out_p_line_0001.csv
 
     Returns:
         (case_name, line_index)
     Example:
-        ("2d_channel_forch_newton", 1)
+        ("2d_channel_viscous_newton", 1)
     """
     match = re.match(r"(.+)_out_[up]_line_(\d+)\.csv$", path.name)
     if not match:
@@ -79,8 +79,8 @@ def _sample_key(path: Path):
 
 def _pretty_label(case_name: str):
     mapping = {
-        "2d_channel_forch_newton": "Existing solver (Newton's method)",
-        "2d_channel_forch_simple": "New solver (SIMPLE)",
+        "2d_channel_viscous_newton": "Existing solver (Newton's method)",
+        "2d_channel_viscous_simple": "New solver (SIMPLE)",
     }
     return mapping.get(case_name, case_name)
 
@@ -100,15 +100,15 @@ def _solver_colors(label: str):
 def _build_expected_pressure_profile():
     """
     Expected pressure profile:
-      p(x) = 14500              for x < 1
-      p(1+) = 13000
-      affine to p(2-) = 3000
-      p(2+) = 500
-      affine to p(3-) = -4000
-      p(x) = 0                 for x > 3
+      p(x) = 25000              for x <= 1
+      p(1+) = 17500
+      affine to p(2-) = 7500
+      p(2+) = 5000
+      affine to p(3-) = 500
+      p(x) = 0                 for x >= 3
     """
     x = [0.0, 1.0, 1.0, 2.0, 2.0, 3.0, 3.0, 4.0]
-    p = [14500.0, 14500.0, 13000.0, 3000.0, 500.0, -4000.0, 0.0, 0.0]
+    p = [25000.0, 25000.0, 17500.0, 7500.0, 5000.0, 500.0, 0.0, 0.0]
     return x, p
 
 
@@ -191,7 +191,7 @@ def _build_figure(u_series, p_series, x_label, title, u_styles, p_styles, labels
 
     ax2.set_ylabel(r"Pressure [Pa]")
     ax2.set_xlabel(x_label)
-    ax2.set_ylim(-5000, 15500)
+    ax2.set_ylim(0, 26000)
 
     for ax in (ax1, ax2):
         for spine in ax.spines.values():
@@ -232,13 +232,13 @@ def main(argv):
     if argv:
         raise RuntimeError("This script takes no arguments.")
 
-    u_files = sorted(Path(".").glob("2d_channel_forch_*_out_u_line_*.csv"))
-    p_files = sorted(Path(".").glob("2d_channel_forch_*_out_p_line_*.csv"))
+    u_files = sorted(Path(".").glob("2d_channel_viscous_*_out_u_line_*.csv"))
+    p_files = sorted(Path(".").glob("2d_channel_viscous_*_out_p_line_*.csv"))
 
     if not u_files or not p_files:
         raise RuntimeError(
             "No line sample CSV files found for pattern "
-            "'2d_channel_forch_*_out_[u|p]_line_*.csv'."
+            "'2d_channel_viscous_*_out_[u|p]_line_*.csv'."
         )
 
     u_map = {_sample_key(path): path for path in u_files}

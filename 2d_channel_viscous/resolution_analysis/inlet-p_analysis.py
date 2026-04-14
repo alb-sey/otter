@@ -23,12 +23,12 @@ import sys
 from pathlib import Path
 
 
-ANALYTICAL_PRESSURE = 14500.0
+ANALYTICAL_PRESSURE = 25000
 
 SIMPLE_FILE = Path("simple_inlet-p.csv")
 NEWTON_FILE = Path("newton_inlet-p.csv")
 
-EXPECTED_IX = [20, 40, 80, 160, 320]
+EXPECTED_IX = [10, 20, 40, 80, 160, 320, 640]
 
 SIMPLE_COLOR = "#d62728"
 NEWTON_COLOR = "#FF674A"
