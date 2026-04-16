@@ -20,8 +20,6 @@
 *.aux
 *.toc
 *.snm
-*.csv
-*.csv.*
 *.dylib
 *.so
 *.so.*
@@ -38,7 +36,6 @@
 *.nem
 *.spd
 *.pex
-*.pdf
 *.plist*
 *.bbl
 *.blg
@@ -74,7 +71,6 @@ temp_print_trace.*
 *.plugin
 *.outp
 *.patch
-*.txt
 *.bib.bak
 *.out
 *.vtk
