@@ -1,6 +1,6 @@
 Applications:
-    test_app:
+    otter:
         app_types:
-            - TestAppApp
+            - OtterApp
         content_directory: ${ROOT_DIR}/doc/content
         log_default: WARNING

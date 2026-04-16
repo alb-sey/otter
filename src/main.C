@@ -7,12 +7,12 @@
 //* Licensed under LGPL 2.1, please see LICENSE for details
 //* https://www.gnu.org/licenses/lgpl-2.1.html
 
-#include "TestAppTestApp.h"
+#include "OtterOtter.h"
 #include "MooseMain.h"
 
 // Begin the main program.
 int
 main(int argc, char * argv[])
 {
-  return Moose::main<TestAppTestApp>(argc, argv);
+  return Moose::main<OtterOtter>(argc, argv);
 }

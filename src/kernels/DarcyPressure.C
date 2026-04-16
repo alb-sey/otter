@@ -1,6 +1,6 @@
 #include "DarcyPressure.h"
 
-registerMooseObject("TestAppApp", DarcyPressure);
+registerMooseObject("OtterApp", DarcyPressure);
 
 InputParameters
 DarcyPressure::validParams()

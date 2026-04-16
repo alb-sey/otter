@@ -1,11 +1,11 @@
-#include "TestAppApp.h"
+#include "OtterApp.h"
 #include "Moose.h"
 #include "AppFactory.h"
 #include "ModulesApp.h"
 #include "MooseSyntax.h"
 
 InputParameters
-TestAppApp::validParams()
+OtterApp::validParams()
 {
   InputParameters params = MooseApp::validParams();
   params.set<bool>("use_legacy_material_output") = false;
@@ -13,39 +13,39 @@ TestAppApp::validParams()
   return params;
 }
 
-TestAppApp::TestAppApp(const InputParameters & parameters) : MooseApp(parameters)
+OtterApp::OtterApp(const InputParameters & parameters) : MooseApp(parameters)
 {
-  TestAppApp::registerAll(_factory, _action_factory, _syntax);
+  OtterApp::registerAll(_factory, _action_factory, _syntax);
 }
 
-TestAppApp::~TestAppApp() {}
+OtterApp::~OtterApp() {}
 
 void
-TestAppApp::registerAll(Factory & f, ActionFactory & af, Syntax & syntax)
+OtterApp::registerAll(Factory & f, ActionFactory & af, Syntax & syntax)
 {
-  ModulesApp::registerAllObjects<TestAppApp>(f, af, syntax);
-  Registry::registerObjectsTo(f, {"TestAppApp"});
-  Registry::registerActionsTo(af, {"TestAppApp"});
+  ModulesApp::registerAllObjects<OtterApp>(f, af, syntax);
+  Registry::registerObjectsTo(f, {"OtterApp"});
+  Registry::registerActionsTo(af, {"OtterApp"});
 
   /* register custom execute flags, action syntax, etc. here */
 }
 
 void
-TestAppApp::registerApps()
+OtterApp::registerApps()
 {
-  registerApp(TestAppApp);
+  registerApp(OtterApp);
 }
 
 /***************************************************************************************************
  *********************** Dynamic Library Entry Points - DO NOT MODIFY ******************************
  **************************************************************************************************/
 extern "C" void
-TestAppApp__registerAll(Factory & f, ActionFactory & af, Syntax & s)
+OtterApp__registerAll(Factory & f, ActionFactory & af, Syntax & s)
 {
-  TestAppApp::registerAll(f, af, s);
+  OtterApp::registerAll(f, af, s);
 }
 extern "C" void
-TestAppApp__registerApps()
+OtterApp__registerApps()
 {
-  TestAppApp::registerApps();
+  OtterApp::registerApps();
 }

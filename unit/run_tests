@@ -1,6 +1,6 @@
 #!/bin/bash
 
-APPLICATION_NAME=test_app
+APPLICATION_NAME=otter
 # If $METHOD is not set, use opt
 if [ -z $METHOD ]; then
   export METHOD=opt

@@ -6,45 +6,45 @@
 //*
 //* Licensed under LGPL 2.1, please see LICENSE for details
 //* https://www.gnu.org/licenses/lgpl-2.1.html
-#include "TestAppTestApp.h"
-#include "TestAppApp.h"
+#include "OtterOtter.h"
+#include "OtterApp.h"
 #include "Moose.h"
 #include "AppFactory.h"
 #include "MooseSyntax.h"
 
 InputParameters
-TestAppTestApp::validParams()
+OtterOtter::validParams()
 {
-  InputParameters params = TestAppApp::validParams();
+  InputParameters params = OtterApp::validParams();
   params.set<bool>("use_legacy_material_output") = false;
   params.set<bool>("use_legacy_initial_residual_evaluation_behavior") = false;
   return params;
 }
 
-TestAppTestApp::TestAppTestApp(const InputParameters & parameters) : MooseApp(parameters)
+OtterOtter::OtterOtter(const InputParameters & parameters) : MooseApp(parameters)
 {
-  TestAppTestApp::registerAll(
+  OtterOtter::registerAll(
       _factory, _action_factory, _syntax, getParam<bool>("allow_test_objects"));
 }
 
-TestAppTestApp::~TestAppTestApp() {}
+OtterOtter::~OtterOtter() {}
 
 void
-TestAppTestApp::registerAll(Factory & f, ActionFactory & af, Syntax & s, bool use_test_objs)
+OtterOtter::registerAll(Factory & f, ActionFactory & af, Syntax & s, bool use_test_objs)
 {
-  TestAppApp::registerAll(f, af, s);
+  OtterApp::registerAll(f, af, s);
   if (use_test_objs)
   {
-    Registry::registerObjectsTo(f, {"TestAppTestApp"});
-    Registry::registerActionsTo(af, {"TestAppTestApp"});
+    Registry::registerObjectsTo(f, {"OtterOtter"});
+    Registry::registerActionsTo(af, {"OtterOtter"});
   }
 }
 
 void
-TestAppTestApp::registerApps()
+OtterOtter::registerApps()
 {
-  registerApp(TestAppApp);
-  registerApp(TestAppTestApp);
+  registerApp(OtterApp);
+  registerApp(OtterOtter);
 }
 
 /***************************************************************************************************
@@ -52,12 +52,12 @@ TestAppTestApp::registerApps()
  **************************************************************************************************/
 // External entry point for dynamic application loading
 extern "C" void
-TestAppTestApp__registerAll(Factory & f, ActionFactory & af, Syntax & s)
+OtterOtter__registerAll(Factory & f, ActionFactory & af, Syntax & s)
 {
-  TestAppTestApp::registerAll(f, af, s);
+  OtterOtter::registerAll(f, af, s);
 }
 extern "C" void
-TestAppTestApp__registerApps()
+OtterOtter__registerApps()
 {
-  TestAppTestApp::registerApps();
+  OtterOtter::registerApps();
 }

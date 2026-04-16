@@ -50,20 +50,20 @@ ADDITIONAL_LIBS     := $(FRAMEWORK_DIR)/contrib/gtest/libgtest.la
 # dep apps
 CURRENT_DIR        := $(shell pwd)
 APPLICATION_DIR    := $(CURRENT_DIR)/..
-APPLICATION_NAME   := test_app
+APPLICATION_NAME   := otter
 include            $(FRAMEWORK_DIR)/app.mk
 
 APPLICATION_DIR    := $(CURRENT_DIR)
-APPLICATION_NAME   := test_app-unit
+APPLICATION_NAME   := otter-unit
 BUILD_EXEC         := yes
 
 DEP_APPS    ?= $(shell $(FRAMEWORK_DIR)/scripts/find_dep_apps.py $(APPLICATION_NAME))
 include $(FRAMEWORK_DIR)/app.mk
 
-# Find all the TestApp unit test source files and include their dependencies.
-test_app_unit_srcfiles := $(shell find $(CURRENT_DIR)/src -name "*.C")
-test_app_unit_deps := $(patsubst %.C, %.$(obj-suffix).d, $(test_app_unit_srcfiles))
--include $(test_app_unit_deps)
+# Find all the Otter unit test source files and include their dependencies.
+otter_unit_srcfiles := $(shell find $(CURRENT_DIR)/src -name "*.C")
+otter_unit_deps := $(patsubst %.C, %.$(obj-suffix).d, $(otter_unit_srcfiles))
+-include $(otter_unit_deps)
 
 ###############################################################################
 # Additional special case targets should be added here
