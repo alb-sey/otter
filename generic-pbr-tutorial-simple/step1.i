@@ -3,6 +3,7 @@ mu = 0 # 2e-3 # 1e-2
 rho = 1e3
 advected_interp_method = 'upwind'
 bed_radius = 1.2
+bed_height = 10.0
 bed_porosity = 0.39
 # forcheimer = 0
 # bf = '0 0 0'
@@ -14,49 +15,16 @@ flow_vel = '${fparse mass_flow_rate / (flow_area * rho)}'
 
 [Mesh]
 
-  #final_generator=delete
   [mesh]
     type = CartesianMeshGenerator
     dim = 2
-    dx = '4'
-    dy = '1'
-    ix = '100'
-    iy = '25'
+    dx = '${bed_radius}'
+    dy = '${bed_height}'
+    ix = '6'
+    iy = '40'
     subdomain_id = '1'
   []
-  # [baffle]
-  #   type = SideSetsBetweenSubdomainsGenerator
-  #   input = mesh
-  #   primary_block = '1'
-  #   paired_block = '2'
-  #   new_boundary = 'baffle'
-  # []
-  # [baffle2]
-  #   type = SideSetsBetweenSubdomainsGenerator
-  #   input = baffle
-  #   primary_block = '2'
-  #   paired_block = '3'
-  #   new_boundary = 'baffle2'
-  # []
-  # [baffle3]
-  #   type = SideSetsBetweenSubdomainsGenerator
-  #   input = baffle2
-  #   primary_block = '3'
-  #   paired_block = '4'
-  #   new_boundary = 'baffle3'
-  # []
-  # [split_top_bottom]
-  #   type = BreakBoundaryOnSubdomainGenerator
-  #   input = baffle3
-  #   boundaries = 'top bottom'
-  # []
 
-
-  # [delete]
-  #   type = BoundaryDeletionGenerator
-  #   boundary_names = 'top bottom'
-  #   input = split_top_bottom
-  # []
 []
 
 [Problem]
@@ -84,7 +52,7 @@ flow_vel = '${fparse mass_flow_rate / (flow_area * rho)}'
     use_reconstructed_pressure_gradient = true
     flux_velocity_reconstruction_relaxation = 1.0
     # flux_velocity_reconstruction_zero_flux_sidesets = 'top_to_1 top_to_2 top_to_3 top_to_4 bottom_to_1 bottom_to_2 bottom_to_3 bottom_to_4'
-    flux_velocity_reconstruction_zero_flux_sidesets = 'top bottom'
+    flux_velocity_reconstruction_zero_flux_sidesets = 'right left'
 
     
     use_corrected_pressure_gradient = false
@@ -97,12 +65,12 @@ flow_vel = '${fparse mass_flow_rate / (flow_area * rho)}'
   [superficial_u]
     type = MooseLinearVariableFVReal
     solver_sys = u_system
-    initial_condition = ${flow_vel}
+    initial_condition = 0
   []
   [superficial_v]
     type = MooseLinearVariableFVReal
     solver_sys = v_system
-    initial_condition = 0.0
+    initial_condition = -${flow_vel}
   []
   [pressure]
     type = MooseLinearVariableFVReal
@@ -194,49 +162,36 @@ flow_vel = '${fparse mass_flow_rate / (flow_area * rho)}'
 
 [LinearFVBCs]
 
-  [left_u]
+  [top_u]
     type = LinearFVAdvectionDiffusionFunctorDirichletBC
-    boundary = left
+    boundary = top
     variable = superficial_u
-    functor = ${flow_vel}
+    functor = 0.0
   []
-  [outlet_u]
+  [bottom_u]
     type = LinearFVAdvectionDiffusionOutflowBC
-    boundary = right
+    boundary = bottom
     variable = superficial_u
     use_two_term_expansion = false
   []
 
-  [left_v]
+  [top_v]
     type = LinearFVAdvectionDiffusionFunctorDirichletBC
-    boundary = left
+    boundary = top
     variable = superficial_v
-    functor = 0.0
+    functor = -${flow_vel}
   []
-  [outlet_v]
+  [bottom_v]
     type = LinearFVAdvectionDiffusionOutflowBC
-    boundary = right
+    boundary = bottom
     variable = superficial_v
     use_two_term_expansion = false
   []
-  # [noslip_v]
-  #   type = LinearFVAdvectionDiffusionFunctorDirichletBC
-  #   boundary = 'top_to_1 top_to_2 top_to_3 bottom_to_1 bottom_to_2 bottom_to_3'
-  #   variable = superficial_v
-  #   functor = 0.0
-  # []
-  # [noslip_u]
-  #   type = LinearFVAdvectionDiffusionFunctorDirichletBC
-  #   boundary = 'top_to_1 top_to_2 top_to_3 bottom_to_1 bottom_to_2 bottom_to_3'
-  #   variable = superficial_u
-  #   functor = 0.0
-  # []
+
 
   [symmetry-u]
     type = LinearFVVelocitySymmetryBC
-    # boundary = 'top_to_1 top_to_2 top_to_3 top_to_4 bottom_to_1 bottom_to_2 bottom_to_3 bottom_to_4'
-    boundary = 'top bottom'
-
+    boundary = 'left right'
     variable = superficial_u
     u = superficial_u
     v = superficial_v
@@ -244,8 +199,7 @@ flow_vel = '${fparse mass_flow_rate / (flow_area * rho)}'
   []
   [symmetry-v]
     type = LinearFVVelocitySymmetryBC
-    # boundary = 'top_to_1 top_to_2 top_to_3 top_to_4 bottom_to_1 bottom_to_2 bottom_to_3 bottom_to_4'
-    boundary = 'top bottom'
+    boundary = 'left right'
     variable = superficial_v
     u = superficial_u
     v = superficial_v
@@ -254,34 +208,22 @@ flow_vel = '${fparse mass_flow_rate / (flow_area * rho)}'
 
   [outlet_p]
     type = LinearFVAdvectionDiffusionFunctorDirichletBC
-    boundary = right
+    boundary = bottom
     variable = pressure
     functor = 5.5e6
   []
 
-  # [pressure-extrapolation]
-  #   type = LinearFVPressureFluxBC
-  #   boundary = 'bottom_to_1 bottom_to_2 bottom_to_3 top_to_1 top_to_2 top_to_3'
-  #   variable = pressure
-  #   HbyA_flux = HbyA
-  #   Ainv = Ainv
-  # []
 
   [pressure-symmetry]
     type = LinearFVPressureSymmetryBC
-    # boundary = 'top_to_1 top_to_2 top_to_3 top_to_4 bottom_to_1 bottom_to_2 bottom_to_3 bottom_to_4'
-    boundary = 'top bottom'
+    boundary = 'left right'
     variable = pressure
     HbyA_flux = 'HbyA' # Functor created in the RhieChowMassFlux UO
   []
 []
 
 [FunctorMaterials]
-  # [forch]
-  #   type = GenericVectorFunctorMaterial
-  #   prop_names = forch
-  #   prop_values = '${forcheimer} ${forcheimer} ${forcheimer}'
-  # []
+
   [porosity]
     type = PiecewiseByBlockFunctorMaterial
     prop_name = porosity
@@ -290,84 +232,81 @@ flow_vel = '${fparse mass_flow_rate / (flow_area * rho)}'
 []
 
 [Postprocessors]
-  [p_left]
+  [p_top]
     type = SideAverageValue
     variable = pressure
-    boundary = left
+    boundary = top
   []
-  [p_right]
+  [p_bottom]
     type = SideAverageValue
     variable = pressure
-    boundary = right
+    boundary = bottom
   []
-  [p_jump]
-    type = ParsedPostprocessor
-    expression = 'p_left - p_right'
-    pp_names = 'p_left p_right'
-  []
-  [p_block_1]
-    type = ElementAverageValue
-    variable = pressure
-    block = 1
-  []
-  # [p_block_2]
-  #   type = ElementAverageValue
-  #   variable = pressure
-  #   block = 2
-  # []
-  # [p_block_jump]
-  #   type = ParsedPostprocessor
-  #   expression = 'p_block_1 - p_block_2'
-  #   pp_names = 'p_block_1 p_block_2'
-  # []
-  [u_block_1]
-    type = ElementAverageValue
-    variable = superficial_u
-    block = 1
-  []
-  # [u_block_2]
-  #   type = ElementAverageValue
-  #   variable = superficial_u
-  #   block = 2
-  # []
-  # [u_block_jump]
-  #   type = ParsedPostprocessor
-  #   expression = 'u_block_1 - u_block_2'
-  #   pp_names = 'u_block_1 u_block_2'
-  # []
-  # [v_top_int]
-  #   type = SideIntegralVariablePostprocessor
-  #   variable = superficial_v
-  #   boundary = 'top_to_1 top_to_2 top_to_3 top_to_4'
-  # []
-  # [top_area]
-  #   type = AreaPostprocessor
-  #   boundary = 'top_to_1 top_to_2 top_to_3 top_to_4'
-  # []
-  # [v_top_avg]
-  #   type = ParsedPostprocessor
-  #   pp_names = 'v_top_int top_area'
-  #   expression = 'v_top_int/top_area'
-  # []
-[]
 
-
-[VectorPostprocessors]
-  [u_line]
-    type = LineValueSampler
-    variable = superficial_u
-    start_point = '0 0.5 0'
-    end_point = '4 0.5 0'
-    num_points = 401
-    sort_by = id
+  [desired_mfr]
+    type = Receiver
+    default = ${mass_flow_rate}
   []
-  [p_line]
-    type = LineValueSampler
+
+  [inlet_mfr]
+    type = VolumetricFlowRate
+    advected_quantity = ${rho}
+    vel_x = superficial_u
+    vel_y = superficial_v
+    boundary = top
+    rhie_chow_user_object = rc
+  []
+  [outlet_mfr]
+    type = VolumetricFlowRate
+    advected_quantity = ${rho}
+    vel_x = superficial_u
+    vel_y = superficial_v
+    boundary = bottom
+    rhie_chow_user_object = rc
+  []
+
+  [u_min]
+    type = ElementExtremeValue
+    variable = superficial_u
+    value_type = min
+  []
+  [u_max]
+    type = ElementExtremeValue
+    variable = superficial_u
+    value_type = max
+  []
+
+  [v_min]
+    type = ElementExtremeValue
+    variable = superficial_v
+    value_type = min
+  []
+  [v_max]
+    type = ElementExtremeValue
+    variable = superficial_v
+    value_type = max
+  []
+
+  [p_min]
+    type = ElementExtremeValue
     variable = pressure
-    start_point = '0 0.5 0'
-    end_point = '4 0.5 0'
-    num_points = 401
-    sort_by = id
+    value_type = min
+  []
+  [p_max]
+    type = ElementExtremeValue
+    variable = pressure
+    value_type = max
+  []
+
+  [top_v_avg]
+    type = SideAverageValue
+    variable = superficial_v
+    boundary = top
+  []
+  [bottom_v_avg]
+    type = SideAverageValue
+    variable = superficial_v
+    boundary = bottom
   []
 []
 
