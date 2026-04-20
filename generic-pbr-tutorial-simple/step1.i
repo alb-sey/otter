@@ -1,9 +1,15 @@
 mu = 0 # 2e-3 # 1e-2
 rho = 1000
 advected_interp_method = 'upwind'
-u_in = 1
+# bed_radius = 1.2
+flow_vel = 1
+bed_porosity = 0.39
 # forcheimer = 0
 # bf = '0 0 0'
+
+# mass_flow_rate = 60.0
+# flow_area = '${fparse pi * bed_radius * bed_radius}'
+# flow_vel = '${fparse mass_flow_rate / flow_area / rho}'
 
 [Mesh]
 
@@ -90,7 +96,7 @@ u_in = 1
   [superficial_u]
     type = MooseLinearVariableFVReal
     solver_sys = u_system
-    initial_condition = ${u_in}
+    initial_condition = ${flow_vel}
   []
   [superficial_v]
     type = MooseLinearVariableFVReal
@@ -191,7 +197,7 @@ u_in = 1
     type = LinearFVAdvectionDiffusionFunctorDirichletBC
     boundary = left
     variable = superficial_u
-    functor = ${u_in}
+    functor = ${flow_vel}
   []
   [outlet_u]
     type = LinearFVAdvectionDiffusionOutflowBC
@@ -249,7 +255,7 @@ u_in = 1
     type = LinearFVAdvectionDiffusionFunctorDirichletBC
     boundary = right
     variable = pressure
-    functor = 1e6
+    functor = 5.5e6
   []
 
   # [pressure-extrapolation]
@@ -278,7 +284,7 @@ u_in = 1
   [porosity]
     type = PiecewiseByBlockFunctorMaterial
     prop_name = porosity
-    subdomain_to_prop_value = '1 0.5'
+    subdomain_to_prop_value = '1 ${bed_porosity}'
   []
 []
 
