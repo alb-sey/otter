@@ -1,15 +1,16 @@
 mu = 0 # 2e-3 # 1e-2
-rho = 1000
+# rho = 8.60161 
+rho = 1e3
 advected_interp_method = 'upwind'
-# bed_radius = 1.2
-flow_vel = 1
+bed_radius = 1.2
 bed_porosity = 0.39
 # forcheimer = 0
 # bf = '0 0 0'
 
-# mass_flow_rate = 60.0
-# flow_area = '${fparse pi * bed_radius * bed_radius}'
-# flow_vel = '${fparse mass_flow_rate / flow_area / rho}'
+# mass_flow_rate = 60.0   #value with low rho
+mass_flow_rate = 6960  #value with high rho
+flow_area = '${fparse pi * bed_radius * bed_radius}'
+flow_vel = '${fparse mass_flow_rate / (flow_area * rho)}'
 
 [Mesh]
 
