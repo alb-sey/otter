@@ -14,17 +14,17 @@ flow_area = '${fparse pi * bed_radius * bed_radius}'
 flow_vel = '${fparse mass_flow_rate / (flow_area * rho)}'
 
 [Mesh]
-
-  [mesh]
-    type = CartesianMeshGenerator
+  [gen]
+    type = GeneratedMeshGenerator
     dim = 2
-    dx = '${bed_radius}'
-    dy = '${bed_height}'
-    ix = '6'
-    iy = '40'
-    subdomain_id = '1'
+    xmin = 0
+    xmax = ${bed_radius}
+    ymin = 0
+    ymax = ${bed_height}
+    nx = 6
+    ny = 40
   []
-
+  coord_type = RZ
 []
 
 [Problem]
@@ -221,13 +221,12 @@ flow_vel = '${fparse mass_flow_rate / (flow_area * rho)}'
     HbyA_flux = 'HbyA' # Functor created in the RhieChowMassFlux UO
   []
 []
-
-[FunctorMaterials]
-
+[AuxVariables]
   [porosity]
-    type = PiecewiseByBlockFunctorMaterial
-    prop_name = porosity
-    subdomain_to_prop_value = '1 ${bed_porosity}'
+    family = MONOMIAL
+    order = CONSTANT
+    fv = true
+    initial_condition = ${bed_porosity}
   []
 []
 
