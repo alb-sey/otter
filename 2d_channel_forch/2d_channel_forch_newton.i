@@ -41,7 +41,7 @@ rho = 1000
     type = BernoulliPressureVariable
     u=superficial_u
     v=superficial_v
-    allow_two_term_expansion_on_bernoulli_faces = false
+    allow_two_term_expansion_on_bernoulli_faces = true
     porosity=porosity
     rho=${rho}
   []
@@ -287,8 +287,8 @@ rho = 1000
   petsc_options_iname = '-pc_type -pc_factor_shift_type'
   petsc_options_value = ' lu       NONZERO'
   line_search = 'none'
-  nl_rel_tol = 1e-8
-  nl_abs_tol = 1e-8
+  nl_rel_tol = 1e-14
+  nl_abs_tol = 1e-14
 []
 
 
