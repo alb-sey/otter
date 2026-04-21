@@ -5,6 +5,7 @@ advected_interp_method = 'upwind'
 bed_radius = 1.2
 bed_height = 10.0
 bed_porosity = 0.39
+cavity_height = 0.5
 # forcheimer = 52
 # bf = '0 0 0'
 
@@ -15,16 +16,32 @@ flow_vel = '${fparse mass_flow_rate / (flow_area * rho)}'
 
 [Mesh]
   [gen]
-    type = GeneratedMeshGenerator
+    type = CartesianMeshGenerator
     dim = 2
-    xmin = 0
-    xmax = ${bed_radius}
-    ymin = 0
-    ymax = ${bed_height}
-    nx = 6
-    ny = 40
+    dx = '${bed_radius}'
+    ix = '6'
+    dy = '${bed_height} ${cavity_height}'
+    iy = '40            2'
+    subdomain_id = '1 2'
   []
-  coord_type = RZ
+
+
+  [rename_blocks]
+    type = RenameBlockGenerator
+    old_block = '1 2'
+    new_block = 'bed cavity'
+    input = gen
+  []
+
+  [baffle]
+    type = SideSetsBetweenSubdomainsGenerator
+    input = rename_blocks
+    primary_block = 'bed'
+    paired_block = 'cavity'
+    new_boundary = 'baffle'
+  []
+
+
 []
 
 [Problem]
@@ -41,7 +58,7 @@ flow_vel = '${fparse mass_flow_rate / (flow_area * rho)}'
     rho = ${rho}
     porosity = porosity
     p_diffusion_kernel = p_diffusion
-    pressure_baffle_sidesets = 'baffle baffle2 baffle3'
+    pressure_baffle_sidesets = 'baffle'
     # pressure_gradient_limiter = 'baffle baffle2 baffle3'
     # baffle_form_loss = ${bf}
     # velocity_form_loss = 'lower_epsilon lower_epsilon higher_epsilon'
@@ -75,7 +92,7 @@ flow_vel = '${fparse mass_flow_rate / (flow_area * rho)}'
   [pressure]
     type = MooseLinearVariableFVReal
     solver_sys = pressure_system
-    initial_condition = 0.0
+    initial_condition = 5e6
   []
 []
 
@@ -125,7 +142,7 @@ flow_vel = '${fparse mass_flow_rate / (flow_area * rho)}'
   [u_friction]
     type = LinearFVMomentumPorousFriction
     variable = superficial_u
-    Forchheimer_name = forch
+    Forchheimer_name = Forchheimer_coefficient
     porosity = porosity
     rho = ${rho}
     u = superficial_u
@@ -135,7 +152,7 @@ flow_vel = '${fparse mass_flow_rate / (flow_area * rho)}'
   [v_friction]
     type = LinearFVMomentumPorousFriction
     variable = superficial_v
-    Forchheimer_name = forch
+    Forchheimer_name = Forchheimer_coefficient
     porosity = porosity
     rho = ${rho}
     u = superficial_u
@@ -220,23 +237,80 @@ flow_vel = '${fparse mass_flow_rate / (flow_area * rho)}'
   []
 []
 
+# [AuxVariables]
+#   [porosity]
+#     family = MONOMIAL
+#     order = CONSTANT
+#     fv = true
+#     initial_condition = ${bed_porosity}
+#   []
+# []
 
-[AuxVariables]
-  [porosity]
-    family = MONOMIAL
-    order = CONSTANT
-    fv = true
-    initial_condition = ${bed_porosity}
-  []
-[]
+# [FunctorMaterials]
+#   [friction]
+#     type = ADGenericVectorFunctorMaterial
+#     prop_names = 'forch'
+#     prop_values = '10.14 10.14 10.14'  #f_F,simple = f_F,newton * porosity/2
+#   []
+# []
 
 [FunctorMaterials]
-  [friction]
-    type = ADGenericVectorFunctorMaterial
-    prop_names = 'forch'
-    prop_values = '10.14 10.14 10.14'  #f_F,simple = f_F,newton * porosity/2
+
+  # [const_drag]
+  #   type = GenericVectorFunctorMaterial
+  #   prop_names = 'Darcy_coefficient'
+  #   prop_values = '0 0 0'
+  # []
+
+  [drag_pebble_bed]
+    type = GenericVectorFunctorMaterial
+    prop_names = 'pb_forch'
+    prop_values = '10.14 10.14 10.14'                  #f_F,simple = f_F,newton * porosity/2
+  []
+
+  [drag_cavity]
+    type = GenericVectorFunctorMaterial
+    prop_names = 'cav_forch'
+    prop_values = '0 0 0'
+  []
+
+  [forch]
+    type = PiecewiseByBlockVectorFunctorMaterial
+    prop_name = 'Forchheimer_coefficient'
+    subdomain_to_prop_value = 'bed pb_forch 
+                              cavity cav_forch'
+  []
+
+  [porosity]
+    type = PiecewiseByBlockFunctorMaterial
+    prop_name = porosity
+    subdomain_to_prop_value = 'bed ${bed_porosity}
+                              cavity 1'
   []
 []
+
+
+# [AuxVariables]
+#   [porosity]
+#     type=PiecewiseConstantVariable
+#   []
+# []
+
+# [ICs]
+#   [p_bed]
+#     type=ConstantIC
+#     variable=porosity
+#     value=${bed_porosity}
+#     block=bed
+#   []
+
+#   [p_cavity]
+#     type=ConstantIC
+#     variable=porosity
+#     value=1
+#     block=cavity
+#   []
+# []
 
 
 [Postprocessors]
@@ -341,8 +415,8 @@ flow_vel = '${fparse mass_flow_rate / (flow_area * rho)}'
   rhie_chow_user_object = rc
   momentum_systems = 'u_system v_system'
   pressure_system = pressure_system
-  momentum_equation_relaxation = 0.4
-  pressure_variable_relaxation = 0.1
+  momentum_equation_relaxation = 0.2
+  pressure_variable_relaxation = 0.05
   num_iterations = 250
   pressure_absolute_tolerance = 1e-8
   momentum_absolute_tolerance = 1e-8
