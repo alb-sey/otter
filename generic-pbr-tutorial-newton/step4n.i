@@ -74,6 +74,8 @@ offset = 0.56331
 []
 
 [FVKernels]
+
+  # not useful for solving steady state
   [energy_storage]
     type = PINSFVEnergyTimeDerivative
     variable = T_solid
@@ -235,6 +237,10 @@ offset = 0.56331
                                cavity 1'
   []
 
+
+
+  
+
   [effective_solid_thermal_conductivity_pb]
     type = ADGenericVectorFunctorMaterial
     prop_names = 'effective_thermal_conductivity'
@@ -255,11 +261,14 @@ offset = 0.56331
     prop_values = '2000  300'
   []
 
+
   # [kappa_f_pebble_bed]
   #   type = FunctorLinearPecletKappaFluid
   #   porosity = porosity
   #   block = 'bed'
   # []
+
+  # WRONG BED KAPPA IN THEORY
 
   [kappa_f_pebble_bed]
     type = ADGenericVectorFunctorMaterial

@@ -356,6 +356,6 @@ flow_vel = '${fparse mass_flow_rate / (flow_area * rho)}'
 
 [Outputs]
   exodus = true
-  csv = true
-  execute_on = 'timestep_end'
+  # csv = true
+  # execute_on = 'timestep_end'
 []

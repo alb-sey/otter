@@ -1,5 +1,5 @@
-mu = 2e-3 # 1e-2
-rho = 8.60161 
+mu = 3.5e-5 # 1e-2
+rho = 8.7325
 # rho = 1e3
 advected_interp_method = 'upwind'
 bed_radius = 1.2
@@ -8,6 +8,19 @@ bed_porosity = 0.39
 cavity_height = 0.5
 # forcheimer = 52
 # bf = '0 0 0'
+
+T_inlet = 300
+
+cp_f = 5200          #does not vary too much with T
+k_f = 0.25           # same
+# rho_s = 2000        
+# cp_s = 300          
+k_s = 20             
+alpha = 2e4          # volumetric interphase heat transfer coefficient
+# thermal_mass_scaling = 1
+
+power_fn_scaling = 0.88689239556
+offset = 0.56331
 
 mass_flow_rate = 60.0   #value with low rho
 # mass_flow_rate = 6960  #value with high rho
@@ -44,9 +57,19 @@ flow_vel = '${fparse mass_flow_rate / (flow_area * rho)}'
 
 []
 
+# added energy and solid energy
 [Problem]
-  linear_sys_names = 'u_system v_system pressure_system'
+  linear_sys_names = 'u_system v_system pressure_system energy_system solid_energy_system'
   previous_nl_solution_required = true
+[]
+
+#copy paste from the other one
+[Functions]
+  [heat_source_fn]
+    type = ParsedFunction
+    expression = '${power_fn_scaling} * (-1.0612e4 * pow(y+${offset}, 4) + 1.5963e5 * pow(y+${offset}, 3)
+                   -6.2993e5 * pow(y+${offset}, 2) + 1.4199e6 * (y+${offset}) + 5.5402e4)'
+  []
 []
 
 [UserObjects]
@@ -93,6 +116,19 @@ flow_vel = '${fparse mass_flow_rate / (flow_area * rho)}'
     type = MooseLinearVariableFVReal
     solver_sys = pressure_system
     initial_condition = 5e6
+  []
+
+  [T_fluid]
+    type = MooseLinearVariableFVReal
+    solver_sys = energy_system
+    initial_condition = ${T_inlet}
+  []
+
+  [T_solid]
+    type = MooseLinearVariableFVReal
+    solver_sys = solid_energy_system
+    initial_condition = ${T_inlet}
+    block = 'bed'
   []
 []
 
@@ -173,6 +209,63 @@ flow_vel = '${fparse mass_flow_rate / (flow_area * rho)}'
     face_flux = HbyA
     force_boundary_execution = true
   []
+
+
+
+  [solid_energy_diffusion]
+    type = LinearFVDiffusion
+    variable = T_solid
+    diffusion_coeff = kappa_s
+    use_nonorthogonal_correction = false
+    block = 'bed'
+  []
+
+  [source]
+    type = LinearFVSource
+    variable = T_solid
+    source_density = heat_source_fn
+    block = 'bed'
+  []
+
+  [convection_pebble_bed_fluid]
+    type = LinearFVVolumetricHeatTransfer
+    variable = T_solid
+    h_solid_fluid = alpha
+    T_fluid = T_fluid
+    T_solid = T_solid
+    is_solid = true
+    block = 'bed'
+  []
+
+  [fluid_solid_exchange]
+    type = LinearFVVolumetricHeatTransfer
+    variable = T_fluid
+    h_solid_fluid = alpha
+    T_fluid = T_fluid
+    T_solid = T_solid
+    is_solid = false
+    block = 'bed'
+  []
+
+
+
+  [fluid_energy_advection]
+    type = LinearFVEnergyAdvection
+    variable = T_fluid
+    # cp = ${cp_f}
+    advected_quantity = enthalpy
+    advected_interp_method = ${advected_interp_method}
+    rhie_chow_user_object = rc
+  []
+
+  [fluid_energy_diffusion]
+    type = LinearFVDiffusion
+    variable = T_fluid
+    diffusion_coeff = kappa_f
+    use_nonorthogonal_correction = false
+  []
+
+
 []
 
 [LinearFVBCs]
@@ -235,6 +328,25 @@ flow_vel = '${fparse mass_flow_rate / (flow_area * rho)}'
     variable = pressure
     HbyA_flux = 'HbyA' # Functor created in the RhieChowMassFlux UO
   []
+
+
+
+
+
+  [top_T_fluid]
+    type = LinearFVAdvectionDiffusionFunctorDirichletBC
+    boundary = top
+    variable = T_fluid
+    functor = ${T_inlet}
+  []
+
+  [bottom_T_fluid]
+    type = LinearFVAdvectionDiffusionOutflowBC
+    boundary = bottom
+    variable = T_fluid
+    use_two_term_expansion = false
+  []
+
 []
 
 # [AuxVariables]
@@ -286,6 +398,34 @@ flow_vel = '${fparse mass_flow_rate / (flow_area * rho)}'
     prop_name = porosity
     subdomain_to_prop_value = 'bed ${bed_porosity}
                               cavity 1'
+  []
+
+  [fluid_k_bed]
+    type = PiecewiseByBlockFunctorMaterial
+    prop_name = kappa_f
+    subdomain_to_prop_value = 'bed ${k_f}
+                               cavity ${k_f}'
+  []
+
+  [solid_k]
+    type = GenericFunctorMaterial
+    prop_names = 'kappa_s'
+    prop_values = '${k_s}'
+    block = 'bed'
+  []
+
+  [alpha_mat]
+    type = GenericFunctorMaterial
+    prop_names = 'alpha'
+    prop_values = '${alpha}'
+    block = 'bed'
+  []
+
+  [rhocpT]
+    type = ParsedFunctorMaterial
+    property_name = 'rhocpT'
+    functor_names = 'T_fluid'
+    expression = '${rho}*${cp_f}*T_fluid'
   []
 []
 
@@ -389,6 +529,44 @@ flow_vel = '${fparse mass_flow_rate / (flow_area * rho)}'
     variable = superficial_v
     boundary = bottom
   []
+
+  [enthalpy_inlet]
+    type = VolumetricFlowRate
+    advected_quantity = rhocpT
+    vel_x = superficial_u
+    vel_y = superficial_v
+    boundary = top
+    rhie_chow_user_object = rc
+  []
+
+  [enthalpy_outlet]
+    type = VolumetricFlowRate
+    advected_quantity = rhocpT
+    vel_x = superficial_u
+    vel_y = superficial_v
+    boundary = bottom
+    rhie_chow_user_object = rc
+    advected_interp_method = upwind
+  []
+
+  [heat_source_integral]
+    type = ElementIntegralFunctorPostprocessor
+    functor = heat_source_fn
+    block = bed
+  []
+
+  [T_solid_max]
+    type = ElementExtremeValue
+    variable = T_solid
+    value_type = max
+    block=bed
+  []
+
+  [T_outlet_avg]
+    type = SideAverageValue
+    variable = T_fluid
+    boundary = bottom
+  []
 []
 
 [AuxVariables]
@@ -408,23 +586,46 @@ flow_vel = '${fparse mass_flow_rate / (flow_area * rho)}'
 
 [Executioner]
   type = SIMPLE
-  momentum_l_abs_tol = 1e-14
-  pressure_l_abs_tol = 1e-14
-  momentum_l_tol = 0
-  pressure_l_tol = 0
+
   rhie_chow_user_object = rc
+
   momentum_systems = 'u_system v_system'
   pressure_system = pressure_system
+  energy_system = energy_system
+  solid_energy_system = solid_energy_system
+
+  momentum_l_abs_tol = 1e-14
+  pressure_l_abs_tol = 1e-14
+  energy_l_abs_tol = 1e-12
+  solid_energy_l_abs_tol = 1e-12
+
+  momentum_l_tol = 0
+  pressure_l_tol = 0
+  energy_l_tol = 0
+  solid_energy_l_tol = 0
+
   momentum_equation_relaxation = 0.2
   pressure_variable_relaxation = 0.05
+  energy_equation_relaxation = 0.9
+  # if your version exposes it separately:
+  # solid_energy_equation_relaxation = 0.9
+
   num_iterations = 250
+
   pressure_absolute_tolerance = 1e-8
   momentum_absolute_tolerance = 1e-8
+  energy_absolute_tolerance = 1e-8
+  solid_energy_absolute_tolerance = 1e-8
+
   momentum_petsc_options_iname = '-pc_type -pc_hypre_type'
   momentum_petsc_options_value = 'hypre boomeramg'
   pressure_petsc_options_iname = '-pc_type -pc_hypre_type'
   pressure_petsc_options_value = 'hypre boomeramg'
-  # print_fields = true
+  energy_petsc_options_iname = '-pc_type -pc_hypre_type'
+  energy_petsc_options_value = 'hypre boomeramg'
+  solid_energy_petsc_options_iname = '-pc_type -pc_hypre_type'
+  solid_energy_petsc_options_value = 'hypre boomeramg'
+
   continue_on_max_its = true
 []
 
