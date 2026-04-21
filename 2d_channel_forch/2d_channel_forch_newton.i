@@ -7,7 +7,7 @@ rho = 1000
     dx = '1 1 1 1'
     dy = '1'
     ix = '20 20 20 20'
-    iy = '50'
+    iy = '20'
     subdomain_id = '1 2 3 4'
   []
 []
@@ -41,6 +41,7 @@ rho = 1000
     type = BernoulliPressureVariable
     u=superficial_u
     v=superficial_v
+    allow_two_term_expansion_on_bernoulli_faces = false
     porosity=porosity
     rho=${rho}
   []

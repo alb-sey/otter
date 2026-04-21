@@ -1,4 +1,4 @@
-mu = 0 # 2e-3 # 1e-2
+mu = 2e-3 # 1e-2
 # rho = 8.60161 
 rho = 1e3
 advected_interp_method = 'upwind'

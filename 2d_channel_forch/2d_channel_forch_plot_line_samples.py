@@ -7,6 +7,8 @@ Expected files in the current directory, for example:
     2d_channel_forch_newton_out_p_line_0001.csv
     2d_channel_forch_simple_out_u_line_0001.csv
     2d_channel_forch_simple_out_p_line_0001.csv
+    2d_channel_forch_star_out_u_line_001.csv
+    2d_channel_forch_star_out_p_line_001.csv
 """
 
 from __future__ import annotations
@@ -43,6 +45,11 @@ def _read_csv(path: Path):
         for name, val in zip(header, row):
             cols[name].append(float(val))
 
+    # Sort all columns by x so files exported in arbitrary order (e.g. StarCCM+) plot correctly.
+    if "x" in cols:
+        order = sorted(range(len(cols["x"])), key=lambda i: cols["x"][i])
+        cols = {name: [vals[i] for i in order] for name, vals in cols.items()}
+
     return cols
 
 
@@ -63,6 +70,7 @@ def _sample_key(path: Path):
     Extract a matching key from filenames like:
         2d_channel_forch_newton_out_u_line_0001.csv
         2d_channel_forch_simple_out_p_line_0001.csv
+        2d_channel_forch_star_out_u_line_001.csv
 
     Returns:
         (case_name, line_index)
@@ -81,19 +89,22 @@ def _pretty_label(case_name: str):
     mapping = {
         "2d_channel_forch_newton": "Existing solver (Newton's method)",
         "2d_channel_forch_simple": "New solver (SIMPLE)",
+        "2d_channel_forch_star": "StarCCM+",
     }
     return mapping.get(case_name, case_name)
 
 
 def _solver_colors(label: str):
     """
-    Keep SIMPLE colors unchanged.
-    Use custom colors for Newton:
-      - velocity Newton: #70C9FF
-      - pressure Newton: #FF674A
+    Returns (velocity_color, pressure_color) for each solver label.
+      - Newton:   velocity #00B9FF, pressure #FF674A
+      - SIMPLE:   matplotlib defaults
+      - StarCCM+: dark yellow (#B8860B) for both
     """
     if "Newton" in label:
         return "#00B9FF", "#FF674A"
+    if "StarCCM+" in label:
+        return "#00AE8B", "#FF8800"
     return "#1f77b4", "#d62728"
 
 
@@ -140,7 +151,6 @@ def _build_figure(u_series, p_series, x_label, title, u_styles, p_styles, labels
             x_u,
             u,
             color=vel_color,
-            # linestyle=style,
             linewidth=1,
             alpha=1.0,
             marker=markers[i % len(markers)],
@@ -169,7 +179,6 @@ def _build_figure(u_series, p_series, x_label, title, u_styles, p_styles, labels
             x_p,
             p,
             color=pres_color,
-            # linestyle=style,
             linewidth=1,
             alpha=1.0,
             marker=markers[i % len(markers)],

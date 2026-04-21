@@ -12,8 +12,8 @@ bf = '0 0 0'
     dim = 2
     dx = '1 1 1 1'
     dy = '1'
-    ix = '100 100 100 100'
-    iy = '50'
+    ix = '20 20 20 20'
+    iy = '20'
     subdomain_id = '1 2 3 4'
   []
   [baffle]
@@ -284,7 +284,7 @@ bf = '0 0 0'
   [forch_block_3]
     type = GenericVectorFunctorMaterial
     prop_names = 'forch_3'
-    prop_values = '0.166665 0.166665 1.166665'
+    prop_values = '0.166665 0.166665 0.166665'
   []
 
   [forch]
