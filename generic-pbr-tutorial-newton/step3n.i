@@ -38,6 +38,9 @@ flow_vel = '${fparse mass_flow_rate / flow_area / density}'
     new_block = 'bed cavity'
     input = gen
   []
+
+  coord_type = RZ
+
 []
 
 [FluidProperties]

@@ -40,7 +40,7 @@ flow_vel = '${fparse mass_flow_rate / (flow_area * rho)}'
     paired_block = 'cavity'
     new_boundary = 'baffle'
   []
-
+  coord_type = RZ
 
 []
 
@@ -58,15 +58,15 @@ flow_vel = '${fparse mass_flow_rate / (flow_area * rho)}'
     rho = ${rho}
     porosity = porosity
     p_diffusion_kernel = p_diffusion
-    pressure_baffle_sidesets = 'baffle'
+    # pressure_baffle_sidesets = 'baffle'
     # pressure_gradient_limiter = 'baffle baffle2 baffle3'
     # baffle_form_loss = ${bf}
     # velocity_form_loss = 'lower_epsilon lower_epsilon higher_epsilon'
     # pressure_gradient_limiter_blend = 0.5
     pressure_baffle_relaxation = 0.1
     debug_baffle = false
-    use_flux_velocity_reconstruction = true
-    use_reconstructed_pressure_gradient = true
+    use_flux_velocity_reconstruction = false
+    use_reconstructed_pressure_gradient = false
     flux_velocity_reconstruction_relaxation = 1.0
     # flux_velocity_reconstruction_zero_flux_sidesets = 'top_to_1 top_to_2 top_to_3 top_to_4 bottom_to_1 bottom_to_2 bottom_to_3 bottom_to_4'
     flux_velocity_reconstruction_zero_flux_sidesets = 'right left'
