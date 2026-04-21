@@ -1,6 +1,6 @@
 # ==============================================================================
 # Model description:
-# Step2 - Step1 plus pressure drop.
+# Step3 - Step2 with cavity on top.
 # ------------------------------------------------------------------------------
 # Idaho Falls, INL, August 15, 2023 04:03 PM
 # Author(s): Joseph R. Brennan, Dr. Sebastian Schunert, Dr. Mustafa K. Jaradat
@@ -8,8 +8,8 @@
 # ==============================================================================
 bed_height = 10.0
 bed_radius = 1.2
-bed_porosity = 0.39
 cavity_height = 0.5
+bed_porosity = 0.39
 outlet_pressure = 5.5e6
 T_fluid = 300
 density = 8.6545
@@ -36,6 +36,7 @@ flow_vel = '${fparse mass_flow_rate / flow_area / density}'
     new_block = 'bed cavity'
     input = gen
   []
+  coord_type = RZ
 []
 
 [FluidProperties]
@@ -56,6 +57,7 @@ flow_vel = '${fparse mass_flow_rate / flow_area / density}'
 
     # porous medium treatment parameters
     porosity = porosity
+    porosity_interface_pressure_treatment = 'bernoulli'
 
     # initial conditions
     initial_velocity = '1e-6 1e-6 0'
@@ -86,97 +88,39 @@ flow_vel = '${fparse mass_flow_rate / flow_area / density}'
     T_fluid = ${T_fluid}
     speed = speed
     characteristic_length = ${pebble_diameter}
-    neglect_derivatives_of_density_time_derivative = false
-  []
-
-  # [drag_pebble_bed]
-  #   type = FunctorKTADragCoefficients
-  #   fp = fluid_properties_obj
-  #   pebble_diameter = ${pebble_diameter}
-  #   porosity = porosity
-  #   T_fluid = ${T_fluid}
-  #   T_solid = ${T_fluid}
-  # []
-
-  # [const_drag]
-  #   type = GenericVectorFunctorMaterial
-  #   prop_names = 'Darcy_coefficient Forchheimer_coefficient'
-  #   prop_values = '0 0 0      52 52 52'
-  # []
-
-  [const_drag]
-    type = GenericVectorFunctorMaterial
-    prop_names = 'Darcy_coefficient'
-    prop_values = '0 0 0'
   []
 
   [drag_pebble_bed]
-    type = GenericVectorFunctorMaterial
-    prop_names = 'pb_forch'
-    prop_values = '52 52 52' 
+    type = FunctorKTADragCoefficients
+    fp = fluid_properties_obj
+    pebble_diameter = ${pebble_diameter}
+    porosity = porosity
+    T_fluid = ${T_fluid}
+    T_solid = ${T_fluid}
+    block = bed
   []
 
   [drag_cavity]
-    type = GenericVectorFunctorMaterial
-    prop_names = 'cav_forch'
-    prop_values = '0 0 0'
+    type = ADGenericVectorFunctorMaterial
+    prop_names = 'Darcy_coefficient Forchheimer_coefficient'
+    prop_values = '0 0 0 0 0 0'
+    block = cavity
   []
 
-  [forch]
-    type = PiecewiseByBlockVectorFunctorMaterial
-    prop_name = 'Forchheimer_coefficient'
-    subdomain_to_prop_value = 'bed pb_forch 
-                              cavity cav_forch'
-  []
-
-  # [porosity_material]
-  #   type = ADPiecewiseByBlockFunctorMaterial
-  #   prop_name = porosity
-  #   subdomain_to_prop_value = 'bed    ${bed_porosity}
-  #                              cavity 1'
-  # []
-
-
-[]
-
-
-[AuxVariables]
-  [porosity]
-    type=PiecewiseConstantVariable
+  [porosity_material]
+    type = ADPiecewiseByBlockFunctorMaterial
+    prop_name = porosity
+    subdomain_to_prop_value = 'bed    ${bed_porosity}
+                               cavity 1'
   []
 []
-
-[ICs]
-  [p_bed]
-    type=ConstantIC
-    variable=porosity
-    value=${bed_porosity}
-    block=bed
-  []
-
-  [p_cavity]
-    type=ConstantIC
-    variable=porosity
-    value=1
-    block=cavity
-  []
-[]
-
-# [AuxVariables]
-#   [porosity]
-#     family = MONOMIAL
-#     order = CONSTANT
-#     fv = true
-#     initial_condition = ${bed_porosity}
-#   []
-# []
 
 [Executioner]
   type = Transient
   end_time = 100
   [TimeStepper]
     type = IterationAdaptiveDT
-    iteration_window = 4
+    iteration_window = 2
     optimal_iterations = 8
     cutback_factor = 0.8
     growth_factor = 2
@@ -188,7 +132,8 @@ flow_vel = '${fparse mass_flow_rate / flow_area / density}'
   petsc_options_iname = '-pc_type -pc_factor_shift_type -pc_factor_mat_solver_package'
   petsc_options_value = 'lu NONZERO superlu_dist'
   nl_rel_tol = 1e-8
-  nl_abs_tol = 1e-8
+  nl_abs_tol = 1e-5
+  nl_max_its = 15
 []
 
 [Postprocessors]
@@ -267,7 +212,4 @@ flow_vel = '${fparse mass_flow_rate / flow_area / density}'
 
 [Outputs]
   exodus = true
-  # csv=true
-  # execute_on = 'timestep_end'
-
 []
