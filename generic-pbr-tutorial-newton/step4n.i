@@ -41,7 +41,7 @@ offset = 0.56331
   [rename_blocks]
     type = RenameBlockGenerator
     old_block = '1 2'
-    new_block = 'pebble_bed cavity'
+    new_block = 'bed cavity'
     input = gen
   []
   coord_type = RZ
@@ -69,7 +69,7 @@ offset = 0.56331
   [T_solid]
     type = INSFVEnergyVariable
     initial_condition = ${T_inlet}
-    block = 'pebble_bed'
+    block = 'bed'
   []
 []
 
@@ -94,7 +94,7 @@ offset = 0.56331
     type = FVBodyForce
     variable = T_solid
     function = heat_source_fn
-    block = 'pebble_bed'
+    block = 'bed'
   []
 
   [convection_pebble_bed_fluid]
@@ -152,7 +152,7 @@ offset = 0.56331
     friction_coeffs = 'Darcy_coefficient Forchheimer_coefficient'
 
     # energy equation parameters
-    ambient_convection_blocks = 'pebble_bed'
+    ambient_convection_blocks = 'bed'
     ambient_convection_alpha = 'alpha'
     ambient_temperature = 'T_solid'
   []
@@ -169,7 +169,7 @@ offset = 0.56331
   [source_aux]
     type = FunctionAux
     variable = source_var
-    block = pebble_bed
+    block = bed
     function = heat_source_fn
   []
 []
@@ -185,27 +185,53 @@ offset = 0.56331
     characteristic_length = ${pebble_diameter}
   []
 
+  # [drag_pebble_bed]
+  #   type = FunctorKTADragCoefficients
+  #   fp = fluid_properties_obj
+  #   pebble_diameter = ${pebble_diameter}
+  #   porosity = porosity
+  #   T_fluid = T_fluid
+  #   T_solid = T_solid
+  #   block = 'bed'
+  # []
+
+  # [drag_cavity]
+  #   type = ADGenericVectorFunctorMaterial
+  #   prop_names = 'Darcy_coefficient Forchheimer_coefficient'
+  #   prop_values = '0 0 0 0 0 0'
+  #   block = cavity
+  # []
+
+  [const_drag]
+    type = GenericVectorFunctorMaterial
+    prop_names = 'Darcy_coefficient'
+    prop_values = '0 0 0'
+  []
+
   [drag_pebble_bed]
-    type = FunctorKTADragCoefficients
-    fp = fluid_properties_obj
-    pebble_diameter = ${pebble_diameter}
-    porosity = porosity
-    T_fluid = T_fluid
-    T_solid = T_solid
-    block = 'pebble_bed'
+    type = GenericVectorFunctorMaterial
+    prop_names = 'pb_forch'
+    prop_values = '52 52 52' 
   []
 
   [drag_cavity]
-    type = ADGenericVectorFunctorMaterial
-    prop_names = 'Darcy_coefficient Forchheimer_coefficient'
-    prop_values = '0 0 0 0 0 0'
-    block = cavity
+    type = GenericVectorFunctorMaterial
+    prop_names = 'cav_forch'
+    prop_values = '0 0 0'
   []
+
+  [forch]
+    type = PiecewiseByBlockVectorFunctorMaterial
+    prop_name = 'Forchheimer_coefficient'
+    subdomain_to_prop_value = 'bed pb_forch 
+                              cavity cav_forch'
+  []
+
 
   [porosity_material]
     type = ADPiecewiseByBlockFunctorMaterial
     prop_name = porosity
-    subdomain_to_prop_value = 'pebble_bed ${bed_porosity}
+    subdomain_to_prop_value = 'bed ${bed_porosity}
                                cavity 1'
   []
 
@@ -213,14 +239,14 @@ offset = 0.56331
     type = ADGenericVectorFunctorMaterial
     prop_names = 'effective_thermal_conductivity'
     prop_values = '20 20 20'
-    block = 'pebble_bed'
+    block = 'bed'
   []
 
   [alpha_mat]
     type = ADGenericFunctorMaterial
     prop_names = 'alpha'
     prop_values = '2e4'
-    block = 'pebble_bed'
+    block = 'bed'
   []
 
   [generic_mat]
@@ -229,11 +255,19 @@ offset = 0.56331
     prop_values = '2000  300'
   []
 
+  # [kappa_f_pebble_bed]
+  #   type = FunctorLinearPecletKappaFluid
+  #   porosity = porosity
+  #   block = 'bed'
+  # []
+
   [kappa_f_pebble_bed]
-    type = FunctorLinearPecletKappaFluid
-    porosity = porosity
-    block = 'pebble_bed'
+    type = ADGenericVectorFunctorMaterial
+    prop_names = 'kappa'
+    prop_values = 'k k k'
+    block = 'bed'
   []
+
 
   [kappa_f_mat_no_pebble_bed]
     type = ADGenericVectorFunctorMaterial
@@ -334,7 +368,7 @@ offset = 0.56331
   [heat_source_integral]
     type = ElementIntegralFunctorPostprocessor
     functor = heat_source_fn
-    block = 'pebble_bed'
+    block = 'bed'
   []
 []
 
