@@ -235,7 +235,7 @@ h_inlet = '${fparse cp_f * T_inlet}'
     type = LinearFVEnthalpyVolumetricHeatTransfer
     variable = h_fluid
     h_solid_fluid = alpha
-    cp = cp_f
+    cp = cp
     T_fluid = T_fluid
     T_solid = T_solid
     is_solid = false
@@ -415,6 +415,14 @@ h_inlet = '${fparse cp_f * T_inlet}'
     prop_names = 'kappa_s'
     prop_values = '${k_s}'
     block = 'bed'
+  []
+
+  [kappa_h_var]
+    type = ADParsedFunctorMaterial
+    property_name = kappa_h_var
+    functor_names = 'k cp'
+    expression = 'k / cp'
+    enable_jit = false
   []
 
   [alpha_mat]
@@ -602,6 +610,10 @@ h_inlet = '${fparse cp_f * T_inlet}'
     initial_condition = ${T_inlet}
   []
 
+  [k_var]
+    type = MooseLinearVariableFVReal
+  []
+
   [rho_var]
     type = MooseLinearVariableFVReal
   []
@@ -614,6 +626,15 @@ h_inlet = '${fparse cp_f * T_inlet}'
     variable = rho_var
     execute_on = NONLINEAR
   []
+
+  [k_out]
+    type = FunctorAux
+    functor = k
+    variable = k_var
+    execute_on = NONLINEAR
+  []
+
+
   [por]
     type = FunctorAux
     variable = porosity_aux
