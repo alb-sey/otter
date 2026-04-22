@@ -1,4 +1,4 @@
-mu = 3.5e-5 # 1e-2
+# mu = 3.5e-5 # 1e-2
 rho = 8.7325
 # rho = 1e3
 advected_interp_method = 'upwind'
@@ -143,7 +143,7 @@ h_inlet = '${fparse cp_f * T_inlet}'
     type = PorousLinearWCNSFVMomentumFlux
     variable = superficial_u
     advected_interp_method = ${advected_interp_method}
-    mu = ${mu}
+    mu = mu
     u = superficial_u
     v = superficial_v
     momentum_component = 'x'
@@ -156,7 +156,7 @@ h_inlet = '${fparse cp_f * T_inlet}'
     type = PorousLinearWCNSFVMomentumFlux
     variable = superficial_v
     advected_interp_method = ${advected_interp_method}
-    mu = ${mu}
+    mu = mu
     u = superficial_u
     v = superficial_v
     momentum_component = 'y'
@@ -429,8 +429,7 @@ h_inlet = '${fparse cp_f * T_inlet}'
     pressure = pressure
     T_fluid = T_fluid
     h = h_fluid
-    h_from_p_T_functor = h_from_p_T_functor
-    T_from_p_h_functor = T_from_p_h_functor
+    fp=fp
   []
 
 
@@ -438,26 +437,13 @@ h_inlet = '${fparse cp_f * T_inlet}'
     type = GeneralFunctorFluidProps
     fp = fp
     pressure = pressure
+    # T_fluid = ${T_inlet}
     T_fluid = T_fluid
     speed = 1
     porosity = porosity
     characteristic_length = 0.06
   []
 
-
-  [h_from_p_T_functor]
-    type = ParsedFunctorMaterial
-    property_name = h_from_p_T_functor
-    functor_names = 'T_fluid'
-    expression = '${cp_f} * T_fluid'
-  []
-
-  [T_from_p_h_functor]
-    type = ParsedFunctorMaterial
-    property_name = T_from_p_h_functor
-    functor_names = 'h_fluid'
-    expression = 'h_fluid / ${cp_f}'
-  []
 
   # [rho_h]
   #   type = ParsedFunctorMaterial
