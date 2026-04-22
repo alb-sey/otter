@@ -63,7 +63,7 @@ flow_vel = '${fparse mass_flow_rate / (flow_area * rho)}'
     u = superficial_u
     v = superficial_v
     pressure = pressure
-    rho = ${rho}
+    rho = rho
     porosity = porosity
     p_diffusion_kernel = p_diffusion
     # pressure_baffle_sidesets = 'baffle'
@@ -152,7 +152,7 @@ flow_vel = '${fparse mass_flow_rate / (flow_area * rho)}'
     variable = superficial_u
     Forchheimer_name = Forchheimer_coefficient
     porosity = porosity
-    rho = ${rho}
+    rho = rho
     u = superficial_u
     v = superficial_v
     momentum_component = 'x'
@@ -162,7 +162,7 @@ flow_vel = '${fparse mass_flow_rate / (flow_area * rho)}'
     variable = superficial_v
     Forchheimer_name = Forchheimer_coefficient
     porosity = porosity
-    rho = ${rho}
+    rho = rho
     u = superficial_u
     v = superficial_v
     momentum_component = 'y'
@@ -361,7 +361,7 @@ flow_vel = '${fparse mass_flow_rate / (flow_area * rho)}'
 
   [inlet_mfr]
     type = VolumetricFlowRate
-    advected_quantity = ${rho}
+    advected_quantity = rho
     vel_x = superficial_u
     vel_y = superficial_v
     boundary = top
@@ -369,7 +369,7 @@ flow_vel = '${fparse mass_flow_rate / (flow_area * rho)}'
   []
   [outlet_mfr]
     type = VolumetricFlowRate
-    advected_quantity = ${rho}
+    advected_quantity = rho
     vel_x = superficial_u
     vel_y = superficial_v
     boundary = bottom
