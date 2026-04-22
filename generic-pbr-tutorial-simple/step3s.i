@@ -1,7 +1,7 @@
 
-mu = 1e-5
+# mu = 1e-5
 p_out = 5.5e6
-rho = 8.60161 
+rho_f = 8.60161 
 
 bed_radius = 1.2
 bed_height = 10.0
@@ -11,9 +11,9 @@ bed_forch = 10.14
 
 mass_flow_rate = 60.0   #value with low rho
 flow_area = '${fparse pi * bed_radius * bed_radius}'
-flow_vel = '${fparse mass_flow_rate / (flow_area * rho)}'
+flow_vel = '${fparse mass_flow_rate / (flow_area * rho_f)}'
 
-density_factor = 1e-4
+T_inlet = 300
 
 advected_interp_method = 'upwind'
 
@@ -52,13 +52,19 @@ advected_interp_method = 'upwind'
   previous_nl_solution_required = true
 []
 
+[FluidProperties]
+  [fp]
+    type = HeliumFluidProperties
+  []
+[]
+
 [UserObjects]
   [rc]
     type = PorousRhieChowMassFlux
     u = superficial_u
     v = superficial_v
     pressure = pressure
-    rho = 'rho_aux'
+    rho = 'rho'
     porosity = 'porosity'
     p_diffusion_kernel = p_diffusion
 
@@ -161,7 +167,7 @@ advected_interp_method = 'upwind'
     variable = superficial_u
     Forchheimer_name = Forchheimer_coefficient
     porosity = porosity
-    rho = rho_aux
+    rho = rho
     u = superficial_u
     v = superficial_v
     momentum_component = 'x'
@@ -172,7 +178,7 @@ advected_interp_method = 'upwind'
     variable = superficial_v
     Forchheimer_name = Forchheimer_coefficient
     porosity = porosity
-    rho = rho_aux
+    rho = rho
     u = superficial_u
     v = superficial_v
     momentum_component = 'y'
@@ -250,23 +256,29 @@ advected_interp_method = 'upwind'
 []
 
 [Functions]
-  [rho]
+  [rho_parsed]
     type = ParsedFunction
     expression = 'if(y < 10, 2.65 + 0.11*exp(0.40*y), 8.60161)'
   []
 []
 
 [FunctorMaterials]
+  
+  [fluid_props]
+    type = GeneralFunctorFluidProps
+    fp = fp
+    pressure = pressure
+    T_fluid = ${T_inlet}
+    speed = 1
+    porosity = porosity
+    characteristic_length = 0.06
+  []
+
 
   [porosity]
     type = PiecewiseByBlockFunctorMaterial
     prop_name = porosity
     subdomain_to_prop_value = 'bed ${bed_porosity} cavity 1'
-  []
-  [mu]
-    type = ParsedFunctorMaterial
-    property_name = mu
-    expression = '${mu}'
   []
 
   [drag_bed]
@@ -302,7 +314,7 @@ advected_interp_method = 'upwind'
   [assign_rho_aux]
     type = FunctorAux
     variable = rho_aux
-    functor = 'rho'
+    functor = 'rho_parsed'
     execute_on = 'initial timestep_end'
   []
   [assign_porosity_aux]
