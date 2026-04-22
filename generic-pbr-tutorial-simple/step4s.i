@@ -361,14 +361,6 @@ h_inlet = '${fparse cp_f * T_inlet}'
   []
 []
 
-# [AuxVariables]
-#   [porosity]
-#     family = MONOMIAL
-#     order = CONSTANT
-#     fv = true
-#     initial_condition = ${bed_porosity}
-#   []
-# []
 
 # [FunctorMaterials]
 #   [friction]
@@ -623,13 +615,17 @@ h_inlet = '${fparse cp_f * T_inlet}'
     type = MooseLinearVariableFVReal
     initial_condition = ${T_inlet}
   []
+
+  [rho_var]
+    type = MooseLinearVariableFVReal
+  []
 []
 
 [AuxKernels]
-  [test_rho]
+  [rho_out]
     type = FunctorAux
     functor = rho
-    variable = porosity_aux   # reuse any aux var
+    variable = rho_var
     execute_on = NONLINEAR
   []
   [por]
