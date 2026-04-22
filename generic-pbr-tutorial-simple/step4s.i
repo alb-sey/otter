@@ -96,7 +96,7 @@ h_inlet = '${fparse cp_f * T_inlet}'
     u = superficial_u
     v = superficial_v
     pressure = pressure
-    rho = rho
+    rho = ${rho_fixed}
     porosity = porosity
     p_diffusion_kernel = p_diffusion
     # pressure_baffle_sidesets = 'baffle'
@@ -198,7 +198,7 @@ h_inlet = '${fparse cp_f * T_inlet}'
     variable = superficial_u
     Forchheimer_name = Forchheimer_coefficient
     porosity = porosity
-    rho = rho
+    rho = ${rho_fixed}
     u = superficial_u
     v = superficial_v
     momentum_component = 'x'
@@ -208,7 +208,7 @@ h_inlet = '${fparse cp_f * T_inlet}'
     variable = superficial_v
     Forchheimer_name = Forchheimer_coefficient
     porosity = porosity
-    rho = rho
+    rho = ${rho_fixed}
     u = superficial_u
     v = superficial_v
     momentum_component = 'y'
@@ -527,7 +527,7 @@ h_inlet = '${fparse cp_f * T_inlet}'
 
   [inlet_mfr]
     type = VolumetricFlowRate
-    advected_quantity = rho
+    advected_quantity = ${rho_fixed}
     vel_x = superficial_u
     vel_y = superficial_v
     boundary = top
@@ -535,7 +535,7 @@ h_inlet = '${fparse cp_f * T_inlet}'
   []
   [outlet_mfr]
     type = VolumetricFlowRate
-    advected_quantity = rho
+    advected_quantity = ${rho_fixed}
     vel_x = superficial_u
     vel_y = superficial_v
     boundary = bottom
@@ -668,7 +668,7 @@ h_inlet = '${fparse cp_f * T_inlet}'
     type = FunctionAux
     variable = rho_parsed
     function = rho_profile
-    execute_on = NONLINEAR
+    execute_on = 'initial timestep_end'
   []
 
 
