@@ -9,6 +9,10 @@ bed_porosity = 0.39
 cavity_height = 0.5
 bed_forch = 10.14
 
+cp_f = 5200
+k_f = 0.25
+kappa_h = '${fparse k_f / cp_f}'
+
 mass_flow_rate = 60.0   #value with low rho
 flow_area = '${fparse pi * bed_radius * bed_radius}'
 flow_vel = '${fparse mass_flow_rate / (flow_area * rho_f)}'
@@ -48,7 +52,7 @@ advected_interp_method = 'upwind'
 []
 
 [Problem]
-  linear_sys_names = 'u_system v_system pressure_system'
+  linear_sys_names = 'u_system v_system pressure_system energy_system'
   previous_nl_solution_required = true
 []
 
@@ -102,6 +106,14 @@ advected_interp_method = 'upwind'
     solver_sys = pressure_system
     initial_condition = ${p_out}
   []
+
+  [h_fluid]
+    type = MooseLinearVariableFVReal
+    solver_sys = energy_system
+    initial_condition = 1e6
+  []
+
+
 []
 
 [LinearFVKernels]
@@ -183,6 +195,21 @@ advected_interp_method = 'upwind'
     v = superficial_v
     momentum_component = 'y'
   []
+
+  [fluid_energy_advection]
+    type = LinearFVEnergyAdvection
+    variable = h_fluid
+    advected_quantity = enthalpy
+    advected_interp_method = ${advected_interp_method}
+    rhie_chow_user_object = rc
+  []
+
+  [fluid_energy_diffusion]
+    type = LinearFVDiffusion
+    variable = h_fluid
+    diffusion_coeff = kappa_h
+    use_nonorthogonal_correction = false
+  []
 []
 
 [LinearFVBCs]
@@ -253,6 +280,30 @@ advected_interp_method = 'upwind'
     variable = pressure
     HbyA_flux = 'HbyA'
   []
+
+
+  [top_h_fluid]
+    type = LinearFVAdvectionDiffusionFunctorDirichletBC
+    boundary = top
+    variable = h_fluid
+    functor = h_from_p_T
+  []
+
+  [side_h_fluid]
+    type = LinearFVAdvectionDiffusionFunctorNeumannBC
+    boundary = 'left right'
+    variable = h_fluid
+    functor = 0.0
+    diffusion_coeff = kappa_h
+  []
+
+  [bottom_h_fluid]
+    type = LinearFVAdvectionDiffusionOutflowBC
+    boundary = bottom
+    variable = h_fluid
+    use_two_term_expansion = false
+  []
+
 []
 
 [Functions]
@@ -269,6 +320,7 @@ advected_interp_method = 'upwind'
     fp = fp
     pressure = pressure
     T_fluid = ${T_inlet}
+    # T_fluid = T_fluid
     speed = 1
     porosity = porosity
     characteristic_length = 0.06
@@ -299,6 +351,21 @@ advected_interp_method = 'upwind'
     subdomain_to_prop_value = 'bed bed_forch_vec
                               cavity cavity_forch_vec'
   []
+
+
+  [fluid_enthalpy_material]
+    type = LinearFVEnthalpyFunctorMaterial
+    pressure = pressure
+    T_fluid = T_fluid
+    h = h_fluid
+    fp = fp
+  []
+
+  [fluid_constants]
+    type = GenericFunctorMaterial
+    prop_names = 'kappa_h'
+    prop_values = '${kappa_h}'
+  []
 []
 
 [AuxVariables]
@@ -307,6 +374,11 @@ advected_interp_method = 'upwind'
   []
   [porosity_aux]
     type = MooseLinearVariableFVReal
+  []
+
+  [T_fluid]
+    type = MooseLinearVariableFVReal
+    initial_condition = ${T_inlet}
   []
 []
 
@@ -322,6 +394,13 @@ advected_interp_method = 'upwind'
     variable = porosity_aux
     functor = 'porosity'
     execute_on = 'initial timestep_end'
+  []
+
+  [fluid_temperature]
+    type = FunctorAux
+    variable = T_fluid
+    functor = T_from_p_h
+    execute_on = NONLINEAR
   []
 []
 
@@ -343,6 +422,12 @@ advected_interp_method = 'upwind'
     type = ParsedPostprocessor
     expression = 'p_top-p_bottom'
     pp_names = 'p_top p_bottom'
+  []
+
+  [T_outlet_avg]
+    type = SideAverageValue
+    variable = T_fluid
+    boundary = bottom
   []
 []
 
@@ -367,6 +452,14 @@ advected_interp_method = 'upwind'
   pressure_petsc_options_value = 'hypre boomeramg'
   print_fields = false
   continue_on_max_its = true
+
+  energy_system = energy_system
+  energy_l_abs_tol = 1e-12
+  energy_l_tol = 0
+  energy_equation_relaxation = 0.5
+  energy_absolute_tolerance = 1e-8
+  energy_petsc_options_iname = '-pc_type -pc_hypre_type'
+  energy_petsc_options_value = 'hypre boomeramg'
 []
 
 [Outputs]
