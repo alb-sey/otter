@@ -165,6 +165,10 @@ offset = 0.56331
     family = MONOMIAL
     order = CONSTANT
   []
+
+  [rho_var]
+    type = MooseVariableFVReal
+  []
 []
 
 [AuxKernels]
@@ -173,6 +177,13 @@ offset = 0.56331
     variable = source_var
     block = bed
     function = heat_source_fn
+  []
+
+  [rho_aux]
+    type = FunctorAux
+    variable = rho_var
+    functor = rho
+    execute_on = 'TIMESTEP_END'
   []
 []
 
