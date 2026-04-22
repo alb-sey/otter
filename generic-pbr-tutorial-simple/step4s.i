@@ -1,6 +1,6 @@
 # mu = 3.5e-5 # 1e-2
-rho = 8.7325
-# rho = 1e3
+rho_fixed = 8.7325
+# rho_fixed = 1e3
 advected_interp_method = 'upwind'
 bed_radius = 1.2
 bed_height = 10.0
@@ -14,7 +14,7 @@ T_inlet = 300
 cp_f = 5200          #pretty sure that's not accurate, it varies with temperature
 k_f = 0.25           # same issue
 kappa_h = '${fparse k_f / cp_f}'
-# rho_s = 2000        
+# rho_fixed_s = 2000        
 # cp_s = 300          
 k_s = 20             
 alpha = 2e4          # volumetric interphase heat transfer coefficient
@@ -26,7 +26,7 @@ offset = 0.56331
 mass_flow_rate = 60.0   #value with low rho
 # mass_flow_rate = 6960  #value with high rho
 flow_area = '${fparse pi * bed_radius * bed_radius}'
-flow_vel = '${fparse mass_flow_rate / (flow_area * rho)}'
+flow_vel = '${fparse mass_flow_rate / (flow_area * rho_fixed)}'
 h_inlet = '${fparse cp_f * T_inlet}'
 
 [Mesh]
@@ -76,6 +76,18 @@ h_inlet = '${fparse cp_f * T_inlet}'
     expression = '${power_fn_scaling} * (-1.0612e4 * pow(y+${offset}, 4) + 1.5963e5 * pow(y+${offset}, 3)
                    -6.2993e5 * pow(y+${offset}, 2) + 1.4199e6 * (y+${offset}) + 5.5402e4)'
   []
+
+  [T_fluid_parsed]
+    type = ParsedFunction
+    # expression = '940 - (640/10.5)*y'
+    expression = '650 - 35*y'
+  []
+
+  [rho_profile]
+    type = ParsedFunction
+    # expression = '2.8 + (5.9/10.5)*y'
+    expression = '2.65 + 0.11*exp(0.40*y)'
+  []
 []
 
 [UserObjects]
@@ -84,7 +96,7 @@ h_inlet = '${fparse cp_f * T_inlet}'
     u = superficial_u
     v = superficial_v
     pressure = pressure
-    rho = ${rho}
+    rho = rho
     porosity = porosity
     p_diffusion_kernel = p_diffusion
     # pressure_baffle_sidesets = 'baffle'
@@ -186,7 +198,7 @@ h_inlet = '${fparse cp_f * T_inlet}'
     variable = superficial_u
     Forchheimer_name = Forchheimer_coefficient
     porosity = porosity
-    rho = ${rho}
+    rho = rho
     u = superficial_u
     v = superficial_v
     momentum_component = 'x'
@@ -196,7 +208,7 @@ h_inlet = '${fparse cp_f * T_inlet}'
     variable = superficial_v
     Forchheimer_name = Forchheimer_coefficient
     porosity = porosity
-    rho = ${rho}
+    rho = rho
     u = superficial_u
     v = superficial_v
     momentum_component = 'y'
@@ -281,7 +293,7 @@ h_inlet = '${fparse cp_f * T_inlet}'
     type = LinearFVAdvectionDiffusionOutflowBC
     boundary = bottom
     variable = superficial_u
-    use_two_term_expansion = false
+    use_two_term_expansion = true
   []
 
   [top_v]
@@ -294,7 +306,7 @@ h_inlet = '${fparse cp_f * T_inlet}'
     type = LinearFVAdvectionDiffusionOutflowBC
     boundary = bottom
     variable = superficial_v
-    use_two_term_expansion = false
+    use_two_term_expansion = true
   []
 
 
@@ -447,6 +459,8 @@ h_inlet = '${fparse cp_f * T_inlet}'
     pressure = pressure
     # T_fluid = ${T_inlet}
     T_fluid = T_fluid
+    # T_fluid = T_fluid_parsed
+
     speed = 1
     porosity = porosity
     characteristic_length = 0.06
@@ -457,7 +471,7 @@ h_inlet = '${fparse cp_f * T_inlet}'
   #   type = ParsedFunctorMaterial
   #   property_name = 'rho_h'
   #   functor_names = 'h_fluid'
-  #   expression = '${rho} * h_fluid'
+  #   expression = 'rho * h_fluid'
   # []
 []
 
@@ -513,7 +527,7 @@ h_inlet = '${fparse cp_f * T_inlet}'
 
   [inlet_mfr]
     type = VolumetricFlowRate
-    advected_quantity = ${rho}
+    advected_quantity = rho
     vel_x = superficial_u
     vel_y = superficial_v
     boundary = top
@@ -521,7 +535,7 @@ h_inlet = '${fparse cp_f * T_inlet}'
   []
   [outlet_mfr]
     type = VolumetricFlowRate
-    advected_quantity = ${rho}
+    advected_quantity = rho
     vel_x = superficial_u
     vel_y = superficial_v
     boundary = bottom
@@ -617,6 +631,14 @@ h_inlet = '${fparse cp_f * T_inlet}'
   [rho_var]
     type = MooseLinearVariableFVReal
   []
+
+  [T_fluid_parsed_aux]
+    type = MooseLinearVariableFVReal
+  []
+
+  [rho_parsed]
+    type = MooseLinearVariableFVReal
+  []
 []
 
 [AuxKernels]
@@ -631,6 +653,21 @@ h_inlet = '${fparse cp_f * T_inlet}'
     type = FunctorAux
     functor = k
     variable = k_var
+    execute_on = NONLINEAR
+  []
+
+  [T_fluid_parsed_out]
+    type = FunctionAux
+    variable = T_fluid_parsed_aux
+    function=T_fluid_parsed
+    execute_on=NONLINEAR
+  []
+
+
+  [rho_parsed_aux]
+    type = FunctionAux
+    variable = rho_parsed
+    function = rho_profile
     execute_on = NONLINEAR
   []
 
@@ -670,10 +707,8 @@ h_inlet = '${fparse cp_f * T_inlet}'
   solid_energy_l_tol = 0
 
   momentum_equation_relaxation = 0.2
-  pressure_variable_relaxation = 0.05
-  energy_equation_relaxation = 0.9
-  # if your version exposes it separately:
-  # solid_energy_equation_relaxation = 0.9
+  pressure_variable_relaxation = 0.1
+  energy_equation_relaxation = 0.5
 
   num_iterations = 250
 

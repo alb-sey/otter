@@ -51,6 +51,7 @@ flow_vel = '${fparse mass_flow_rate / (flow_area * rho)}'
   previous_nl_solution_required = true
 []
 
+
 [FluidProperties]
   [fp]
     type = HeliumFluidProperties
