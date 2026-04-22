@@ -1,4 +1,4 @@
-mu = 2e-3 # 1e-2
+# mu = 2e-3 # 1e-2
 rho = 8.60161 
 # rho = 1e3
 advected_interp_method = 'upwind'
@@ -8,6 +8,8 @@ bed_porosity = 0.39
 cavity_height = 0.5
 # forcheimer = 52
 # bf = '0 0 0'
+
+T_inlet = 300
 
 mass_flow_rate = 60.0   #value with low rho
 # mass_flow_rate = 6960  #value with high rho
@@ -47,6 +49,12 @@ flow_vel = '${fparse mass_flow_rate / (flow_area * rho)}'
 [Problem]
   linear_sys_names = 'u_system v_system pressure_system'
   previous_nl_solution_required = true
+[]
+
+[FluidProperties]
+  [fp]
+    type = HeliumFluidProperties
+  []
 []
 
 [UserObjects]
@@ -101,7 +109,7 @@ flow_vel = '${fparse mass_flow_rate / (flow_area * rho)}'
     type = PorousLinearWCNSFVMomentumFlux
     variable = superficial_u
     advected_interp_method = ${advected_interp_method}
-    mu = ${mu}
+    mu = mu
     u = superficial_u
     v = superficial_v
     momentum_component = 'x'
@@ -114,7 +122,7 @@ flow_vel = '${fparse mass_flow_rate / (flow_area * rho)}'
     type = PorousLinearWCNSFVMomentumFlux
     variable = superficial_v
     advected_interp_method = ${advected_interp_method}
-    mu = ${mu}
+    mu = mu
     u = superficial_u
     v = superficial_v
     momentum_component = 'y'
@@ -287,6 +295,18 @@ flow_vel = '${fparse mass_flow_rate / (flow_area * rho)}'
     subdomain_to_prop_value = 'bed ${bed_porosity}
                               cavity 1'
   []
+
+
+
+  [fluid_props]
+    type = GeneralFunctorFluidProps
+    fp = fp
+    pressure = pressure
+    T_fluid = ${T_inlet}
+    speed = 1
+    porosity = porosity
+    characteristic_length = 0.06
+  []
 []
 
 
@@ -395,6 +415,13 @@ flow_vel = '${fparse mass_flow_rate / (flow_area * rho)}'
   [porosity_aux]
     type = MooseLinearVariableFVReal
   []
+
+  [rho_var]
+    type = MooseLinearVariableFVReal
+  []
+  [mu_var]
+    type = MooseLinearVariableFVReal
+  []
 []
 
 [AuxKernels]
@@ -403,6 +430,19 @@ flow_vel = '${fparse mass_flow_rate / (flow_area * rho)}'
     variable = porosity_aux
     functor = porosity
     execute_on = 'timestep_end'
+  []
+
+  [rho_out]
+    type = FunctorAux
+    functor = rho
+    variable = rho_var
+    execute_on = NONLINEAR
+  []
+  [mu_out]
+    type = FunctorAux
+    functor = mu
+    variable = mu_var
+    execute_on = NONLINEAR
   []
 []
 
