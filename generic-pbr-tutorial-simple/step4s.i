@@ -7,13 +7,14 @@ bed_radius = 1.2
 bed_height = 10.0
 bed_porosity = 0.39
 cavity_height = 0.5
-bed_forch = 10.14
+bed_forch = 10.14     #there is a difference in convention between the SIMPLE and the Newton solver
 
 cp_f = 5200
 k_f = 0.25
 kappa_h = '${fparse k_f / cp_f}'
 k_s = 20
 alpha = 2e4
+pebble_diameter = 0.06
 
 power_fn_scaling = 0.88689239556
 offset = 0.56331
@@ -75,6 +76,7 @@ advected_interp_method = 'upwind'
     v = superficial_v
     pressure = pressure
     rho = 'rho_aux'
+    # rho = 'rho'
     porosity = 'porosity'
     p_diffusion_kernel = p_diffusion
 
@@ -193,6 +195,7 @@ advected_interp_method = 'upwind'
     Forchheimer_name = Forchheimer_coefficient
     porosity = porosity
     rho = rho_aux
+    # rho = rho
     u = superficial_u
     v = superficial_v
     momentum_component = 'x'
@@ -204,6 +207,7 @@ advected_interp_method = 'upwind'
     Forchheimer_name = Forchheimer_coefficient
     porosity = porosity
     rho = rho_aux
+    # rho = rho
     u = superficial_u
     v = superficial_v
     momentum_component = 'y'
@@ -220,6 +224,7 @@ advected_interp_method = 'upwind'
   [fluid_energy_diffusion]
     type = LinearFVDiffusion
     variable = h_fluid
+    # diffusion_coeff = kappa_h_var
     diffusion_coeff = kappa_h
     use_nonorthogonal_correction = false
   []
@@ -344,6 +349,7 @@ advected_interp_method = 'upwind'
     boundary = 'left right'
     variable = h_fluid
     functor = 0.0
+    # diffusion_coeff = kappa_h_var
     diffusion_coeff = kappa_h
   []
 
@@ -387,7 +393,7 @@ advected_interp_method = 'upwind'
     T_fluid = T_fluid
     speed = 1
     porosity = porosity
-    characteristic_length = 0.06
+    characteristic_length = ${pebble_diameter}
   []
 
 
@@ -429,6 +435,14 @@ advected_interp_method = 'upwind'
     type = GenericFunctorMaterial
     prop_names = 'cp_f kappa_h'
     prop_values = '${cp_f} ${kappa_h}'
+  []
+
+  [kappa_h_var]
+    type = ADParsedFunctorMaterial
+    property_name = kappa_h_var
+    functor_names = 'k cp'
+    expression = 'k / cp'
+    enable_jit = false
   []
 
   [solid_k]
@@ -511,6 +525,7 @@ advected_interp_method = 'upwind'
   [inlet_mfr]
     type = VolumetricFlowRate
     advected_quantity = rho_aux
+    # advected_quantity = rho
     vel_x = superficial_u
     vel_y = superficial_v
     boundary = top
@@ -519,6 +534,7 @@ advected_interp_method = 'upwind'
   [outlet_mfr]
     type = VolumetricFlowRate
     advected_quantity = rho_aux
+    # advected_quantity = rho
     vel_x = superficial_u
     vel_y = superficial_v
     boundary = bottom
