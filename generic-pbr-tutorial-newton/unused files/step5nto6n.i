@@ -1,140 +1,246 @@
 # ==============================================================================
 # Model description:
-# Step5n - Step4 plus reflector geometry and Step5 boundary names.
-# Modified to allow meaningful conductive coupling between pebble bed and side reflector
-# without using unavailable functors.
-# ------------------------------------------------------------------------------
-# Idaho Falls, INL, August 15, 2023 04:03 PM
-# Author(s): Joseph R. Brennan, Dr. Sebastian Schunert, Dr. Mustafa K. Jaradat
-#            and Dr. Paolo Balestra.
+# Try to migrate from step5n to step6n. Convergence issues encountered
 # ==============================================================================
-# bed_height = 10.0
-bed_radius = 1.2
-# cavity_height = 0.5
 bed_porosity = 0.39
 outlet_pressure = 5.84e+6
-inlet_density = 5.2955
+inlet_density = 5.291
 pebble_diameter = 0.06
 T_inlet = 533.25
 thermal_mass_scaling = 1
 
 mass_flow_rate = 64.3
-flow_area = '${fparse pi * bed_radius * bed_radius}'
+riser_inner_radius = 1.701
+riser_outer_radius = 1.871
+flow_area = '${fparse pi * (riser_outer_radius * riser_outer_radius - riser_inner_radius * riser_inner_radius)}'
 flow_vel = '${fparse mass_flow_rate / flow_area / inlet_density}'
 
 # scales the heat source to integrate to 200 MW
 power_fn_scaling = 0.9792628
 
 # moves the heat source around axially to have the peak in the right spot
-offset = -0.29119
+offset = -1.45819
 
 # hydraulic diameters (excluding bed where it's pebble diameter)
 bottom_reflector_Dh = 0.1
+riser_Dh = 0.17
+
+# Darcy placeholder for cavity/plenums, following step6 structure qualitatively
+c_drag = 10
 
 [Mesh]
-  block_id = '1 2 3 4'
+  type = MeshGeneratorMesh
+  block_id = '1 2 3 4 5 6 7'
   block_name = 'pebble_bed
                 cavity
                 bottom_reflector
-                side_reflector'
+                side_reflector
+                upper_plenum
+                bottom_plenum
+                riser'
 
   [cartesian_mesh]
     type = CartesianMeshGenerator
     dim = 2
 
-    dx = '0.20 0.20 0.20 0.20 0.20 0.20 0.010 0.055'
+    dx = '0.20 0.20 0.20 0.20 0.20 0.20
+          0.010 0.055
+          0.13
+          0.102 0.102 0.102
+          0.17
+          0.120'
 
-    ix = '1 1 1 1 1 1 1 1'
+    ix = '1 1 1 1 1 1
+          1 1
+          1
+          1 1 1
+          2
+          1
+          '
 
-    dy = '0.1709 0.1709 0.1709 0.1709 0.1709
-           0.4465 0.4465 0.4465 0.4465 0.4465 0.4465 0.4465 0.4465 0.4465 0.4465
-           0.4465 0.4465 0.4465 0.4465 0.4465 0.4465 0.4465 0.4465 0.4465 0.4465
-           0.458 0.712'
+    dy = '0.100 0.100
+          0.967
+          0.1709 0.1709 0.1709 0.1709 0.1709
+          0.4465 0.4465 0.4465 0.4465 0.4465 0.4465 0.4465 0.4465 0.4465 0.4465
+          0.4465 0.4465 0.4465 0.4465 0.4465 0.4465 0.4465 0.4465 0.4465 0.4465
+          0.458 0.712'
 
-    iy = '2 2 1 1 1
+    iy = '1 2
+          2
+          2 2 1 1 1
           4 1 1 1 1 1 1 1 1 1
           1 1 1 1 1 1 1 1 1 4
           4 2'
 
-    subdomain_id = '3 3 3 3 3 3 4 4
-                    3 3 3 3 3 3 4 4
-                    3 3 3 3 3 3 4 4
-                    3 3 3 3 3 3 4 4
-                    3 3 3 3 3 3 4 4
-                    1 1 1 1 1 1 4 4
-                    1 1 1 1 1 1 4 4
-                    1 1 1 1 1 1 4 4
-                    1 1 1 1 1 1 4 4
-                    1 1 1 1 1 1 4 4
-                    1 1 1 1 1 1 4 4
-                    1 1 1 1 1 1 4 4
-                    1 1 1 1 1 1 4 4
-                    1 1 1 1 1 1 4 4
-                    1 1 1 1 1 1 4 4
-                    1 1 1 1 1 1 4 4
-                    1 1 1 1 1 1 4 4
-                    1 1 1 1 1 1 4 4
-                    1 1 1 1 1 1 4 4
-                    1 1 1 1 1 1 4 4
-                    1 1 1 1 1 1 4 4
-                    1 1 1 1 1 1 4 4
-                    1 1 1 1 1 1 4 4
-                    1 1 1 1 1 1 4 4
-                    1 1 1 1 1 1 4 4
-                    2 2 2 2 2 2 4 4
-                    4 4 4 4 4 4 4 4'
+    subdomain_id = '4 4 4 4 4 4 4 4 4 4 4 4 4 4
+                    4 4 4 4 4 4 4 4 4 4 4 4 4 4
+                    6 6 6 6 6 6 6 6 6 4 4 4 7 4
+                    3 3 3 3 3 3 4 4 4 4 4 4 7 4
+                    3 3 3 3 3 3 4 4 4 4 4 4 7 4
+                    3 3 3 3 3 3 4 4 4 4 4 4 7 4
+                    3 3 3 3 3 3 4 4 4 4 4 4 7 4
+                    3 3 3 3 3 3 4 4 4 4 4 4 7 4
+                    1 1 1 1 1 1 4 4 4 4 4 4 7 4
+                    1 1 1 1 1 1 4 4 4 4 4 4 7 4
+                    1 1 1 1 1 1 4 4 4 4 4 4 7 4
+                    1 1 1 1 1 1 4 4 4 4 4 4 7 4
+                    1 1 1 1 1 1 4 4 4 4 4 4 7 4
+                    1 1 1 1 1 1 4 4 4 4 4 4 7 4
+                    1 1 1 1 1 1 4 4 4 4 4 4 7 4
+                    1 1 1 1 1 1 4 4 4 4 4 4 7 4
+                    1 1 1 1 1 1 4 4 4 4 4 4 7 4
+                    1 1 1 1 1 1 4 4 4 4 4 4 7 4
+                    1 1 1 1 1 1 4 4 4 4 4 4 7 4
+                    1 1 1 1 1 1 4 4 4 4 4 4 7 4
+                    1 1 1 1 1 1 4 4 4 4 4 4 7 4
+                    1 1 1 1 1 1 4 4 4 4 4 4 7 4
+                    1 1 1 1 1 1 4 4 4 4 4 4 7 4
+                    1 1 1 1 1 1 4 4 4 4 4 4 7 4
+                    1 1 1 1 1 1 4 4 4 4 4 4 7 4
+                    1 1 1 1 1 1 4 4 4 4 4 4 7 4
+                    1 1 1 1 1 1 4 4 4 4 4 4 7 4
+                    1 1 1 1 1 1 4 4 4 4 4 4 7 4
+                    2 2 2 2 2 2 5 5 5 5 5 5 7 4
+                    4 4 4 4 4 4 4 4 4 4 4 4 4 4'
+  []
+
+  [inlet]
+    type = SideSetsAroundSubdomainGenerator
+    input = cartesian_mesh
+    block = 7
+    new_boundary = inlet
+    normal = '0 -1 0'
+  []
+
+  [riser_top]
+    type = SideSetsAroundSubdomainGenerator
+    input = inlet
+    block = 7
+    new_boundary = riser_top
+    normal = '0 1 0'
+  []
+
+  [riser_right]
+    type = SideSetsAroundSubdomainGenerator
+    input = riser_top
+    block = 7
+    new_boundary = riser_right
+    normal = '1 0 0'
+  []
+
+  [riser_left]
+    type = ParsedGenerateSideset
+    input = riser_right
+    combinatorial_geometry = 'abs(x-1.701) < 1e-3'
+    included_subdomains = 7
+    included_neighbors = 4
+    new_sideset_name = riser_left
+  []
+
+  [upper_plenum_top]
+    type = SideSetsAroundSubdomainGenerator
+    input = riser_left
+    block = 5
+    new_boundary = upper_plenum_top
+    normal = '0 1 0'
+  []
+
+  [upper_plenum_bottom]
+    type = SideSetsAroundSubdomainGenerator
+    input = upper_plenum_top
+    block = 5
+    new_boundary = upper_plenum_bottom
+    normal = '0 -1 0'
   []
 
   [cavity_top]
     type = SideSetsAroundSubdomainGenerator
-    input = cartesian_mesh
+    input = upper_plenum_bottom
     block = 2
-    normal = '0 1 0'
     new_boundary = cavity_top
+    normal = '0 1 0'
   []
 
-  [cavity_side]
+  [cavity_left]
     type = SideSetsAroundSubdomainGenerator
     input = cavity_top
     block = 2
+    new_boundary = cavity_left
+    normal = '-1 0 0'
+  []
+
+  [bed_left]
+    type = SideSetsAroundSubdomainGenerator
+    input = cavity_left
+    block = 1
+    new_boundary = bed_left
+    normal = '-1 0 0'
+  []
+
+  [bed_right]
+    type = SideSetsAroundSubdomainGenerator
+    input = bed_left
+    block = 1
+    new_boundary = bed_right
     normal = '1 0 0'
-    new_boundary = cavity_side
   []
 
-  [side_reflector_bed]
-    type = SideSetsBetweenSubdomainsGenerator
-    input = cavity_side
-    primary_block = 1
-    paired_block = 4
-    new_boundary = side_reflector_bed
+  [bottom_reflector_left]
+    type = SideSetsAroundSubdomainGenerator
+    input = bed_right
+    block = 3
+    new_boundary = bottom_reflector_left
+    normal = '-1 0 0'
   []
 
-  [side_reflector_bottom_reflector]
-    type = SideSetsBetweenSubdomainsGenerator
-    input = side_reflector_bed
-    primary_block = 3
-    paired_block = 4
-    new_boundary = side_reflector_bottom_reflector
+  [bottom_reflector_right]
+    type = SideSetsAroundSubdomainGenerator
+    input = bottom_reflector_left
+    block = 3
+    new_boundary = bottom_reflector_right
+    normal = '1 0 0'
   []
 
-  [BreakBoundary]
-    type = BreakBoundaryOnSubdomainGenerator
-    input = side_reflector_bottom_reflector
-    boundaries = 'left bottom'
+  [bottom_plenum_left]
+    type = SideSetsAroundSubdomainGenerator
+    input = bottom_reflector_right
+    block = 6
+    new_boundary = bottom_plenum_left
+    normal = '-1 0 0'
   []
 
-  [DeleteBoundary]
-    type = BoundaryDeletionGenerator
-    input = BreakBoundary
-    boundary_names = 'left right top bottom'
+  [bottom_plenum_bottom]
+    type = SideSetsAroundSubdomainGenerator
+    input = bottom_plenum_left
+    block = 6
+    new_boundary = bottom_plenum_bottom
+    normal = '0 -1 0'
   []
 
-  [RenameBoundaryGenerator]
+  [bottom_plenum_top]
+    type = ParsedGenerateSideset
+    input = bottom_plenum_bottom
+    combinatorial_geometry = 'abs(y-1.167) < 1e-3'
+    included_subdomains = 6
+    included_neighbors = 4
+    new_sideset_name = bottom_plenum_top
+  []
+
+  [outlet]
+    type = SideSetsAroundSubdomainGenerator
+    input = bottom_plenum_top
+    block = 6
+    new_boundary = outlet
+    normal = '1 0 0'
+  []
+
+  [rename_boundaries]
     type = RenameBoundaryGenerator
-    input = DeleteBoundary
-    old_boundary = 'cavity_top bottom_to_3 left_to_1 left_to_2 left_to_3 side_reflector_bed side_reflector_bottom_reflector cavity_side'
-    new_boundary = 'inlet outlet bed_left bed_left bed_left bed_right bed_right bed_right'
+    input = outlet
+    old_boundary = 'riser_right riser_top upper_plenum_top cavity_top cavity_left bed_left bottom_reflector_left bottom_plenum_left bottom_plenum_bottom riser_left upper_plenum_bottom bed_right bottom_reflector_right bottom_plenum_top'
+    new_boundary = 'ex ex ex ex ex ex ex ex ex in in in in in'
   []
+
   coord_type = RZ
 []
 
@@ -160,13 +266,11 @@ bottom_reflector_Dh = 0.1
   [T_solid]
     type = INSFVEnergyVariable
     initial_condition = ${T_inlet}
-    block = 'pebble_bed bottom_reflector side_reflector'
+    block = 'pebble_bed bottom_reflector side_reflector riser upper_plenum bottom_plenum'
   []
 []
 
 [FVKernels]
-
-  # not useful for solving steady state
   [energy_storage]
     type = PINSFVEnergyTimeDerivative
     variable = T_solid
@@ -203,50 +307,40 @@ bottom_reflector_Dh = 0.1
 
 [Modules]
   [NavierStokesFV]
-    # general control parameters
     compressibility = 'weakly-compressible'
     porous_medium_treatment = true
     add_energy_equation = true
-    block = 'pebble_bed cavity bottom_reflector'
+    block = 'pebble_bed cavity bottom_reflector upper_plenum bottom_plenum riser'
 
-    # material property parameters
     density = rho
     dynamic_viscosity = mu
-    # specific_heat = cp
     thermal_conductivity = kappa
 
-    # porous medium treatment parameters
     porosity = porosity
     porosity_interface_pressure_treatment = 'bernoulli'
 
-    # initial conditions
     initial_velocity = '1e-6 1e-6 0'
     initial_pressure = 5.4e6
     initial_temperature = '${T_inlet}'
 
-    # inlet boundary conditions
     inlet_boundaries = inlet
     momentum_inlet_types = fixed-velocity
     momentum_inlet_functors = '0 -${flow_vel}'
     energy_inlet_types = fixed-temperature
     energy_inlet_functors = '${T_inlet}'
 
-    # wall boundary conditions
-    wall_boundaries = 'bed_left bed_right'
+    wall_boundaries = 'ex in'
     momentum_wall_types = 'slip slip'
     energy_wall_types = 'heatflux heatflux'
     energy_wall_functors = '0 0'
 
-    # outlet boundary conditions
     outlet_boundaries = outlet
     momentum_outlet_types = fixed-pressure
     pressure_functors = ${outlet_pressure}
 
-    # friction control parameters
     friction_types = 'darcy forchheimer'
     friction_coeffs = 'Darcy_coefficient Forchheimer_coefficient'
 
-    # energy equation parameters
     ambient_convection_blocks = 'pebble_bed bottom_reflector'
     ambient_convection_alpha = 'alpha'
     ambient_temperature = 'T_solid'
@@ -262,7 +356,7 @@ bottom_reflector_Dh = 0.1
 
   [rho_var]
     type = MooseVariableFVReal
-    block = 'pebble_bed cavity bottom_reflector'
+    block = 'pebble_bed cavity bottom_reflector upper_plenum bottom_plenum riser'
   []
 []
 
@@ -278,7 +372,7 @@ bottom_reflector_Dh = 0.1
     type = FunctorAux
     variable = rho_var
     functor = rho
-    block = 'pebble_bed cavity bottom_reflector'
+    block = 'pebble_bed cavity bottom_reflector upper_plenum bottom_plenum riser'
     execute_on = 'TIMESTEP_END'
   []
 []
@@ -291,15 +385,37 @@ bottom_reflector_Dh = 0.1
     pressure = pressure
     T_fluid = T_fluid
     speed = speed
-    # characteristic_length = ${pebble_diameter}
     characteristic_length = characteristic_length
-    block = 'pebble_bed cavity bottom_reflector'
+    block = 'pebble_bed cavity bottom_reflector upper_plenum bottom_plenum riser'
   []
 
-  [const_drag]
+  [const_darcy]
     type = GenericVectorFunctorMaterial
     prop_names = 'Darcy_coefficient'
     prop_values = '0 0 0'
+  []
+
+  [drag_cavity_darcy]
+    type = GenericVectorFunctorMaterial
+    prop_names = 'cavity_darcy'
+    prop_values = '${c_drag} ${c_drag} ${c_drag}'
+  []
+
+  [drag_plenum_darcy]
+    type = GenericVectorFunctorMaterial
+    prop_names = 'plenum_darcy'
+    prop_values = '${c_drag} ${c_drag} ${c_drag}'
+  []
+
+  [darcy_by_block]
+    type = PiecewiseByBlockVectorFunctorMaterial
+    prop_name = 'Darcy_coefficient'
+    subdomain_to_prop_value = 'pebble_bed       Darcy_coefficient
+                               cavity           cavity_darcy
+                               bottom_reflector Darcy_coefficient
+                               riser            Darcy_coefficient
+                               upper_plenum     plenum_darcy
+                               bottom_plenum    plenum_darcy'
   []
 
   [drag_pebble_bed]
@@ -320,12 +436,27 @@ bottom_reflector_Dh = 0.1
     prop_values = '5.2e5 52 5.2e5'
   []
 
+  [drag_riser_placeholder]
+    type = GenericVectorFunctorMaterial
+    prop_names = 'riser_forch'
+    prop_values = '52 52 52'
+  []
+
+  [drag_plenum_placeholder]
+    type = GenericVectorFunctorMaterial
+    prop_names = 'plenum_forch'
+    prop_values = '0 0 0'
+  []
+
   [forch]
     type = PiecewiseByBlockVectorFunctorMaterial
     prop_name = 'Forchheimer_coefficient'
     subdomain_to_prop_value = 'pebble_bed       pb_forch
                                cavity           cav_forch
-                               bottom_reflector br_forch'
+                               bottom_reflector br_forch
+                               riser            riser_forch
+                               upper_plenum     plenum_forch
+                               bottom_plenum    plenum_forch'
   []
 
   [porosity_material]
@@ -334,14 +465,15 @@ bottom_reflector_Dh = 0.1
     subdomain_to_prop_value = 'pebble_bed       ${bed_porosity}
                                cavity           1
                                bottom_reflector 0.3
-                               side_reflector   0'
+                               side_reflector   0
+                               riser            0.32
+                               upper_plenum     0.2
+                               bottom_plenum    0.2'
   []
-
 
   [effective_pebble_bed_thermal_conductivity_placeholder]
     type = ADGenericVectorFunctorMaterial
     prop_names = 'effective_thermal_conductivity'
-    # prop_values = 'kappa_s kappa_s kappa_s'
     prop_values = '1e-3 1e-3 1e-3'
     block = 'pebble_bed'
   []
@@ -350,7 +482,7 @@ bottom_reflector_Dh = 0.1
     type = ADGenericVectorFunctorMaterial
     prop_names = 'effective_thermal_conductivity'
     prop_values = 'kappa_s kappa_s kappa_s'
-    block = 'bottom_reflector side_reflector'
+    block = 'bottom_reflector side_reflector riser upper_plenum bottom_plenum'
   []
 
   [pebble_bed_alpha_placeholder]
@@ -388,6 +520,20 @@ bottom_reflector_Dh = 0.1
     block = 'bottom_reflector'
   []
 
+  [graphite_rho_cp_kappa_riser]
+    type = ADGenericFunctorMaterial
+    prop_names = 'rho_s  cp_s kappa_s'
+    prop_values = '1780.0 1697 ${fparse 0.68 * 26}'
+    block = 'riser'
+  []
+
+  [graphite_rho_cp_kappa_plenums]
+    type = ADGenericFunctorMaterial
+    prop_names = 'rho_s  cp_s kappa_s'
+    prop_values = '1780.0 1697 ${fparse 0.8 * 26}'
+    block = 'upper_plenum bottom_plenum'
+  []
+
   [kappa_f_pebble_bed]
     type = ADGenericVectorFunctorMaterial
     prop_names = 'kappa'
@@ -399,14 +545,15 @@ bottom_reflector_Dh = 0.1
     type = ADGenericVectorFunctorMaterial
     prop_names = 'kappa'
     prop_values = 'k k k'
-    block = 'cavity bottom_reflector'
+    block = 'cavity bottom_reflector upper_plenum bottom_plenum riser'
   []
 
   [characteristic_length]
     type = PiecewiseByBlockFunctorMaterial
     prop_name = characteristic_length
     subdomain_to_prop_value = 'pebble_bed       ${pebble_diameter}
-                               bottom_reflector ${bottom_reflector_Dh}'
+                               bottom_reflector ${bottom_reflector_Dh}
+                               riser            ${riser_Dh}'
   []
 []
 
