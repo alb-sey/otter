@@ -1,8 +1,9 @@
 # ==============================================================================
 # Model description:
-# Step6 - Step5 plus plenums and riser.
+# Step7 - Step6 plus control eod bypass.
 
-# Build from original step6 and replacing unavailable blocks one by one.
+# Build from original step7 and replacing unavailable blocks one by one.
+
 # ------------------------------------------------------------------------------
 # Idaho Falls, INL, August 15, 2023 04:03 PM
 # Author(s): Joseph R. Brennan, Dr. Sebastian Schunert, Dr. Mustafa K. Jaradat
@@ -10,9 +11,9 @@
 # ==============================================================================
 outlet_pressure = 5.84e+6
 T_inlet = 533.25
-inlet_density = 5.291
+inlet_density = 5.3305
 pebble_diameter = 0.06
-thermal_mass_scaling = 0.1
+thermal_mass_scaling = 0.01
 
 mass_flow_rate = 64.3
 riser_inner_radius = 1.701
@@ -24,7 +25,6 @@ flow_vel = '${fparse mass_flow_rate / flow_area / inlet_density}'
 power_fn_scaling = 0.9792628
 
 # drag coefficient in open flow spaces, set to allow convergence
-# The convention for friction factors changed
 c_drag_old = 10
 
 # moves the heat source around axially to have the peak in the right spot
@@ -36,17 +36,19 @@ offset = -1.45819
 # hydraulic diameters (excluding bed where it's pebble diameter)
 bottom_reflector_Dh = 0.1
 riser_Dh = 0.17
+control_rod_Dh = 0.1
 
 [Mesh]
   type = MeshGeneratorMesh
-  block_id = '1 2 3 4 5 6 7'
+  block_id = '1 2 3 4 5 6 7 8'
   block_name = 'pebble_bed
                 cavity
                 bottom_reflector
                 side_reflector
                 upper_plenum
                 bottom_plenum
-                riser'
+                riser
+                control_rods'
 
   [cartesian_mesh]
     type = CartesianMeshGenerator
@@ -64,8 +66,7 @@ riser_Dh = 0.17
           1
           1 1 1
           2
-          1
-          '
+          1'
 
     dy = '0.100 0.100
           0.967
@@ -84,31 +85,31 @@ riser_Dh = 0.17
     subdomain_id = '4 4 4 4 4 4 4 4 4 4 4 4 4 4
                     4 4 4 4 4 4 4 4 4 4 4 4 4 4
                     6 6 6 6 6 6 6 6 6 4 4 4 7 4
-                    3 3 3 3 3 3 4 4 4 4 4 4 7 4
-                    3 3 3 3 3 3 4 4 4 4 4 4 7 4
-                    3 3 3 3 3 3 4 4 4 4 4 4 7 4
-                    3 3 3 3 3 3 4 4 4 4 4 4 7 4
-                    3 3 3 3 3 3 4 4 4 4 4 4 7 4
-                    1 1 1 1 1 1 4 4 4 4 4 4 7 4
-                    1 1 1 1 1 1 4 4 4 4 4 4 7 4
-                    1 1 1 1 1 1 4 4 4 4 4 4 7 4
-                    1 1 1 1 1 1 4 4 4 4 4 4 7 4
-                    1 1 1 1 1 1 4 4 4 4 4 4 7 4
-                    1 1 1 1 1 1 4 4 4 4 4 4 7 4
-                    1 1 1 1 1 1 4 4 4 4 4 4 7 4
-                    1 1 1 1 1 1 4 4 4 4 4 4 7 4
-                    1 1 1 1 1 1 4 4 4 4 4 4 7 4
-                    1 1 1 1 1 1 4 4 4 4 4 4 7 4
-                    1 1 1 1 1 1 4 4 4 4 4 4 7 4
-                    1 1 1 1 1 1 4 4 4 4 4 4 7 4
-                    1 1 1 1 1 1 4 4 4 4 4 4 7 4
-                    1 1 1 1 1 1 4 4 4 4 4 4 7 4
-                    1 1 1 1 1 1 4 4 4 4 4 4 7 4
-                    1 1 1 1 1 1 4 4 4 4 4 4 7 4
-                    1 1 1 1 1 1 4 4 4 4 4 4 7 4
-                    1 1 1 1 1 1 4 4 4 4 4 4 7 4
-                    1 1 1 1 1 1 4 4 4 4 4 4 7 4
-                    1 1 1 1 1 1 4 4 4 4 4 4 7 4
+                    3 3 3 3 3 3 4 4 8 4 4 4 7 4
+                    3 3 3 3 3 3 4 4 8 4 4 4 7 4
+                    3 3 3 3 3 3 4 4 8 4 4 4 7 4
+                    3 3 3 3 3 3 4 4 8 4 4 4 7 4
+                    3 3 3 3 3 3 4 4 8 4 4 4 7 4
+                    1 1 1 1 1 1 4 4 8 4 4 4 7 4
+                    1 1 1 1 1 1 4 4 8 4 4 4 7 4
+                    1 1 1 1 1 1 4 4 8 4 4 4 7 4
+                    1 1 1 1 1 1 4 4 8 4 4 4 7 4
+                    1 1 1 1 1 1 4 4 8 4 4 4 7 4
+                    1 1 1 1 1 1 4 4 8 4 4 4 7 4
+                    1 1 1 1 1 1 4 4 8 4 4 4 7 4
+                    1 1 1 1 1 1 4 4 8 4 4 4 7 4
+                    1 1 1 1 1 1 4 4 8 4 4 4 7 4
+                    1 1 1 1 1 1 4 4 8 4 4 4 7 4
+                    1 1 1 1 1 1 4 4 8 4 4 4 7 4
+                    1 1 1 1 1 1 4 4 8 4 4 4 7 4
+                    1 1 1 1 1 1 4 4 8 4 4 4 7 4
+                    1 1 1 1 1 1 4 4 8 4 4 4 7 4
+                    1 1 1 1 1 1 4 4 8 4 4 4 7 4
+                    1 1 1 1 1 1 4 4 8 4 4 4 7 4
+                    1 1 1 1 1 1 4 4 8 4 4 4 7 4
+                    1 1 1 1 1 1 4 4 8 4 4 4 7 4
+                    1 1 1 1 1 1 4 4 8 4 4 4 7 4
+                    1 1 1 1 1 1 4 4 8 4 4 4 7 4
                     2 2 2 2 2 2 5 5 5 5 5 5 7 4
                     4 4 4 4 4 4 4 4 4 4 4 4 4 4'
   []
@@ -155,11 +156,12 @@ riser_Dh = 0.17
   []
 
   [upper_plenum_bottom]
-    type = SideSetsAroundSubdomainGenerator
+    type = ParsedGenerateSideset
     input = upper_plenum_top
-    block = 5
-    new_boundary = upper_plenum_bottom
-    normal = '0 -1 0'
+    combinatorial_geometry = 'abs(y - 11.335) < 1e-3'
+    included_subdomains = 5
+    included_neighbors = 4
+    new_sideset_name = upper_plenum_bottom
   []
 
   [cavity_top]
@@ -235,19 +237,58 @@ riser_Dh = 0.17
     new_sideset_name = bottom_plenum_top
   []
 
-  [outlet]
+  [control_rod_right]
     type = SideSetsAroundSubdomainGenerator
     input = bottom_plenum_top
+    block = 8
+    new_boundary = control_rod_right
+    normal = '1 0 0'
+  []
+
+  [control_rod_left]
+    type = SideSetsAroundSubdomainGenerator
+    input = control_rod_right
+    block = 8
+    new_boundary = control_rod_left
+    normal = '-1 0 0'
+  []
+
+  [control_rods_bttom_plenum]
+    type = SideSetsBetweenSubdomainsGenerator
+    input = control_rod_left
+    new_boundary = control_rod_outlet
+    primary_block = 8
+    paired_block = 6
+  []
+
+  [outlet]
+    type = SideSetsAroundSubdomainGenerator
+    input = control_rods_bttom_plenum
     block = 6
     new_boundary = outlet
     normal = '1 0 0'
   []
 
+  [cr_top]
+    type = ParsedGenerateSideset
+    combinatorial_geometry = 'abs(y - 10.9515) < 1e-6'
+    included_subdomains = '5'
+    included_neighbors = '4'
+    new_sideset_name = cr_top
+    input = outlet
+  []
+
   [rename_boundaries]
     type = RenameBoundaryGenerator
-    input = outlet
-    old_boundary = 'riser_right riser_top upper_plenum_top cavity_top cavity_left bed_left bottom_reflector_left bottom_plenum_left bottom_plenum_bottom riser_left upper_plenum_bottom bed_right bottom_reflector_right bottom_plenum_top'
-    new_boundary = 'ex ex ex ex ex ex ex ex ex in in in in in'
+    input = cr_top
+    old_boundary = 'cr_top riser_right riser_top upper_plenum_top cavity_top cavity_left bed_left bottom_reflector_left bottom_plenum_left bottom_plenum_bottom riser_left bed_right bottom_reflector_right bottom_plenum_top control_rod_left control_rod_right'
+    new_boundary = 'in in in in in ex ex ex ex in in in in in in in'
+  []
+
+  [remove_boundaries]
+    type = BoundaryDeletionGenerator
+    input = rename_boundaries
+    boundary_names = 'left right top bottom'
   []
 
   coord_type = RZ
@@ -276,7 +317,8 @@ riser_Dh = 0.17
              side_reflector
              riser
              upper_plenum
-             bottom_plenum'
+             bottom_plenum
+             control_rods'
   []
 []
 
@@ -317,11 +359,13 @@ riser_Dh = 0.17
 
 [Modules]
   [NavierStokesFV]
+    # external variable definition
+
     # general control parameters
     compressibility = 'weakly-compressible'
     porous_medium_treatment = true
     add_energy_equation = true
-    block = 'pebble_bed cavity bottom_reflector upper_plenum bottom_plenum riser'
+    block = 'pebble_bed cavity bottom_reflector upper_plenum bottom_plenum riser control_rods'
 
     # material property parameters
     density = rho
@@ -334,7 +378,7 @@ riser_Dh = 0.17
 
     # initial conditions
     initial_velocity = '1e-6 1e-6 0'
-    initial_pressure = 5.4e6
+    initial_pressure = ${outlet_pressure}
     initial_temperature = ${T_inlet}
 
     # inlet boundary conditions
@@ -381,10 +425,11 @@ riser_Dh = 0.17
     fp = fluid_properties_obj
     porosity = porosity
     pressure = pressure
-    T_fluid = ${T_inlet}
+    T_fluid = T_fluid
     speed = speed
     characteristic_length = characteristic_length
-    block = 'pebble_bed cavity bottom_reflector upper_plenum bottom_plenum riser'
+    block = 'pebble_bed cavity bottom_reflector upper_plenum bottom_plenum riser control_rods'
+    neglect_derivatives_of_density_time_derivative = false
   []
 
   [graphite_rho_and_cp_bed]
@@ -408,11 +453,11 @@ riser_Dh = 0.17
     block = 'bottom_reflector'
   []
 
-  [graphite_rho_and_cp_riser]
+  [graphite_rho_and_cp_riser_control_rods]
     type = ADGenericFunctorMaterial
     prop_names = 'rho_s  cp_s kappa_s'
     prop_values = '1780.0 1697 ${fparse 0.68 * 26}'
-    block = 'riser'
+    block = 'riser control_rods'
   []
 
   [graphite_rho_and_cp_plenums]
@@ -427,8 +472,8 @@ riser_Dh = 0.17
   #   fp = fluid_properties_obj
   #   pebble_diameter = ${pebble_diameter}
   #   porosity = porosity
-  #   T_fluid = ${T_inlet}
-  #   T_solid = ${T_inlet}
+  #   T_fluid = T_fluid
+  #   T_solid = T_solid
   #   block = pebble_bed
   # []
 
@@ -501,6 +546,34 @@ riser_Dh = 0.17
     block = 'bottom_reflector riser'
   []
 
+  [Darcy_control_rods]
+    type = ADGenericVectorFunctorMaterial
+    prop_names = 'Darcy_coefficient'
+    prop_values = '0 0 0'
+    block = 'control_rods'
+  []
+
+  [quad_drag_new_convention]
+    type = ADParsedFunctorMaterial
+    # This performs the conversion from the old convention of specifying W for a (W rho u) friction term
+    # to the current one of specifying the coefficient for friction computed as: Forchheimer_coef * rho * v / 2
+    expression = '1000 * 2 / porosity / speed'
+    property_name = new_g
+    functor_symbols = 'porosity speed'
+    functor_names = 'porosity speed'
+  []
+  [Forchheimer_control_rods]
+    type = LinearFrictionFactorFunctorMaterial
+    porosity = porosity
+    functor_name = Forchheimer_coefficient
+    superficial_vel_x = superficial_vel_x
+    superficial_vel_y = superficial_vel_y
+    f = 0
+    g = new_g
+    B = '1 1 1'
+    block = 'control_rods'
+  []
+
   [porosity_material]
     type = ADPiecewiseByBlockFunctorMaterial
     prop_name = porosity
@@ -510,7 +583,8 @@ riser_Dh = 0.17
                                side_reflector   0
                                riser            0.32
                                upper_plenum     0.2
-                               bottom_plenum    0.2'
+                               bottom_plenum    0.2
+                               control_rods     0.32'
   []
 
   # [kappa_s_pebble_bed]
@@ -547,7 +621,8 @@ riser_Dh = 0.17
              side_reflector
              riser
              upper_plenum
-             bottom_plenum'
+             bottom_plenum
+             control_rods'
   []
 
   # [kappa_f_pebble_bed]
@@ -569,7 +644,7 @@ riser_Dh = 0.17
     type = ADGenericVectorFunctorMaterial
     prop_names = 'kappa'
     prop_values = 'k k k'
-    block = 'cavity bottom_reflector upper_plenum bottom_plenum riser'
+    block = 'cavity bottom_reflector upper_plenum bottom_plenum riser control_rods'
   []
 
   # [pebble_bed_alpha]
@@ -605,20 +680,20 @@ riser_Dh = 0.17
     prop_name = characteristic_length
     subdomain_to_prop_value = 'pebble_bed       ${pebble_diameter}
                                bottom_reflector ${bottom_reflector_Dh}
-                               riser            ${riser_Dh}'
+                               riser            ${riser_Dh}
+                               control_rods     ${control_rod_Dh}'
   []
 []
 
 [Executioner]
   type = Transient
-  end_time = 5e5
   [TimeStepper]
     type = IterationAdaptiveDT
-    iteration_window = 4
+    iteration_window = 2
     optimal_iterations = 8
     cutback_factor = 0.8
-    growth_factor = 1.6
-    dt = 0.003
+    growth_factor = 1.2
+    dt = 0.01
   []
   line_search = l2
   solve_type = 'NEWTON'
@@ -626,8 +701,11 @@ riser_Dh = 0.17
   petsc_options_value = 'lu NONZERO superlu_dist'
   nl_rel_tol = 1e-6
   nl_abs_tol = 1e-5
-  nl_max_its = 30
+  nl_max_its = 20
   automatic_scaling = true
+  steady_state_detection = true
+  steady_state_tolerance = 1e-10
+  steady_state_start_time = 1000
 []
 
 [Postprocessors]
@@ -647,6 +725,22 @@ riser_Dh = 0.17
     vel_y = 'superficial_vel_y'
     boundary = 'outlet'
     rhie_chow_user_object = pins_rhie_chow_interpolator
+  []
+
+  [cr_mfr]
+    type = VolumetricFlowRate
+    advected_quantity = rho
+    vel_x = 'superficial_vel_x'
+    vel_y = 'superficial_vel_y'
+    boundary = 'control_rod_outlet'
+    rhie_chow_user_object = pins_rhie_chow_interpolator
+    outputs = none
+  []
+
+  [cr_mfr_fraction]
+    type = ParsedPostprocessor
+    pp_names = 'cr_mfr inlet_mfr'
+    expression = 'abs(cr_mfr / inlet_mfr * 100)'
   []
 
   [inlet_pressure]
