@@ -479,7 +479,7 @@ riser_Dh = 0.17
   [drag_xz_multiplier]
     type = ADParsedFunctorMaterial
     property_name = drag_xz
-    expression = '1e4*cd'
+    expression = '1e3*cd'
     functor_names = 'c_drag'
     functor_symbols = 'cd'
     block = 'bottom_reflector riser'
@@ -525,7 +525,7 @@ riser_Dh = 0.17
   [kappa_s_pebble_bed]
     type = ADGenericFunctorMaterial
     prop_names = 'kappa_s'
-    prop_values = '8'
+    prop_values = '18'
     block = 'pebble_bed'
   []
 
@@ -580,7 +580,7 @@ riser_Dh = 0.17
   [pebble_bed_alpha]
     type = ADGenericFunctorMaterial
     prop_names = 'alpha'
-    prop_values = '1e4'
+    prop_values = '1e5'
     block = 'pebble_bed'
   []
 
