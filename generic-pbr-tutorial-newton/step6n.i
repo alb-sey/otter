@@ -479,16 +479,25 @@ riser_Dh = 0.17
   [drag_xz_multiplier]
     type = ADParsedFunctorMaterial
     property_name = drag_xz
-    expression = '1e3*cd'
+    expression = '2e2*cd'       # Warning this too high makes the solve diverge !
     functor_names = 'c_drag'
     functor_symbols = 'cd'
     block = 'bottom_reflector riser'
   []
 
+    [drag_y_multiplier]
+      type = ADParsedFunctorMaterial
+      property_name = drag_y
+      expression = '0.2*cd'       # Warning this too high makes the solve diverge !
+      functor_names = 'c_drag'
+      functor_symbols = 'cd'
+      block = 'bottom_reflector riser'
+    []
+
   [drag_bottom_reflector_riser]     #replacement that can be tailored
     type = ADGenericVectorFunctorMaterial
     prop_names = 'Darcy_coefficient Forchheimer_coefficient'
-    prop_values = 'drag_xz c_drag drag_xz 0 0 0'
+    prop_values = 'drag_xz drag_y drag_xz 0 0 0'
     block = 'bottom_reflector riser'
   []
 
@@ -525,7 +534,7 @@ riser_Dh = 0.17
   [kappa_s_pebble_bed]
     type = ADGenericFunctorMaterial
     prop_names = 'kappa_s'
-    prop_values = '18'
+    prop_values = '8'
     block = 'pebble_bed'
   []
 
@@ -580,7 +589,7 @@ riser_Dh = 0.17
   [pebble_bed_alpha]
     type = ADGenericFunctorMaterial
     prop_names = 'alpha'
-    prop_values = '1e5'
+    prop_values = '1.45e5'
     block = 'pebble_bed'
   []
 
